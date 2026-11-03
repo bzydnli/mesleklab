@@ -1,6 +1,7 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { getArea, getLab } from '../data/labs'
 import { StatusBadge } from '../components/StatusBadge'
+import { AlgorithmLab } from '../components/algorithm/AlgorithmLab'
 
 export function LabPage() {
   const { areaId = '', labId = '' } = useParams()
@@ -8,6 +9,8 @@ export function LabPage() {
   const lab = getLab(areaId, labId)
 
   if (!area || !lab) return <Navigate to="/404" replace />
+
+  const isAlgorithmLab = areaId === 'bilisim' && labId === 'algoritma'
 
   return (
     <div className="page-width lab-page">
@@ -26,18 +29,22 @@ export function LabPage() {
 
       <div className="lab-layout">
         <section className="lab-main-panel">
-          <div className="placeholder-stage">
-            <div className="placeholder-toolbar">
-              <span></span><span></span><span></span>
-              <b>MeslekLab / {lab.shortTitle}</b>
+          {isAlgorithmLab ? (
+            <AlgorithmLab />
+          ) : (
+            <div className="placeholder-stage">
+              <div className="placeholder-toolbar">
+                <span></span><span></span><span></span>
+                <b>MeslekLab / {lab.shortTitle}</b>
+              </div>
+              <div className="placeholder-content">
+                <span className="placeholder-icon">{lab.icon}</span>
+                <h2>Playground alanı hazır.</h2>
+                <p>Bu ekran, bu laboratuvarın gerçek simülasyonu geliştirildiğinde çalışma alanına dönüşecek.</p>
+                <div className="fake-controls"><span></span><span></span><span></span></div>
+              </div>
             </div>
-            <div className="placeholder-content">
-              <span className="placeholder-icon">{lab.icon}</span>
-              <h2>Playground alanı hazır.</h2>
-              <p>Bu ekran, bu laboratuvarın gerçek simülasyonu geliştirildiğinde çalışma alanına dönüşecek.</p>
-              <div className="fake-controls"><span></span><span></span><span></span></div>
-            </div>
-          </div>
+          )}
         </section>
 
         <aside className="lab-sidebar">
@@ -52,18 +59,20 @@ export function LabPage() {
         </aside>
       </div>
 
-      <section className="module-blueprint">
-        <div className="section-heading">
-          <span className="kicker">BU MODÜLÜ NASIL GELİŞTİRECEĞİZ?</span>
-          <h2>Tek bir sayfa değil, öğretici bir deney.</h2>
-        </div>
-        <div className="blueprint-grid">
-          <article><b>1</b><h3>Kısa anlatım</h3><p>Öğrenci deneyden önce yalnızca ihtiyaç duyduğu kadar temel bilgi görür.</p></article>
-          <article><b>2</b><h3>İnteraktif deney</h3><p>Değerleri değiştirir, parçaları taşır veya kodu çalıştırır; sonucu anında görür.</p></article>
-          <article><b>3</b><h3>Neden oldu?</h3><p>Sistem sadece doğru/yanlış demez; sonucun nedenini sade biçimde açıklar.</p></article>
-          <article><b>4</b><h3>Mini görev</h3><p>Konu, küçük bir gerçek hayat problemiyle pekiştirilir.</p></article>
-        </div>
-      </section>
+      {!isAlgorithmLab && (
+        <section className="module-blueprint">
+          <div className="section-heading">
+            <span className="kicker">BU MODÜLÜ NASIL GELİŞTİRECEĞİZ?</span>
+            <h2>Tek bir sayfa değil, öğretici bir deney.</h2>
+          </div>
+          <div className="blueprint-grid">
+            <article><b>1</b><h3>Kısa anlatım</h3><p>Öğrenci deneyden önce yalnızca ihtiyaç duyduğu kadar temel bilgi görür.</p></article>
+            <article><b>2</b><h3>İnteraktif deney</h3><p>Değerleri değiştirir, parçaları taşır veya kodu çalıştırır; sonucu anında görür.</p></article>
+            <article><b>3</b><h3>Neden oldu?</h3><p>Sistem sadece doğru/yanlış demez; sonucun nedenini sade biçimde açıklar.</p></article>
+            <article><b>4</b><h3>Mini görev</h3><p>Konu, küçük bir gerçek hayat problemiyle pekiştirilir.</p></article>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
