@@ -64,3 +64,7 @@ Her laboratuvar aynı öğretme döngüsünü hedefler:
 **Bu nedir? → Neden kullanıyoruz? → Sen değiştir → Ne oldu? → Neden böyle oldu? → Mini görev → Gerçek hayat bağlantısı**
 
 İlk gerçek modül adayı: **Temel Devreler Laboratuvarı**.
+
+## Yayınlama
+
+`.github/workflows/deploy-pages.yml` dosyası `main` dalına yapılan her push sonrasında uygulamayı GitHub Pages için derleyecek şekilde hazırlanmıştır. Vite taban yolu `/mesleklab/` olarak ayarlanmıştır.
