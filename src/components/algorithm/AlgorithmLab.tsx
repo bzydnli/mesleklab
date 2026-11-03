@@ -1,305 +1,334 @@
 import { useMemo, useState } from 'react'
+import {
+  algorithmModules,
+  algorithmScopeNote,
+  getAlgorithmModule,
+  type AlgorithmModuleId,
+} from '../../data/algorithmCurriculum'
 import './AlgorithmLab.css'
 
-type Stage = 'problem' | 'algorithm' | 'flow'
 type Feedback = { type: 'success' | 'error' | 'info'; text: string } | null
 
-type AlgorithmStep = {
+type SequenceStep = {
   id: string
   text: string
-  kind: 'start' | 'input' | 'process' | 'output' | 'end'
 }
 
-const correctSteps: AlgorithmStep[] = [
-  { id: 'start', text: 'Başla', kind: 'start' },
-  { id: 'width', text: 'Dikdörtgenin kısa kenarını oku', kind: 'input' },
-  { id: 'height', text: 'Dikdörtgenin uzun kenarını oku', kind: 'input' },
-  { id: 'area', text: 'Alan = kısa kenar × uzun kenar', kind: 'process' },
-  { id: 'print', text: 'Alan değerini ekrana yaz', kind: 'output' },
-  { id: 'end', text: 'Bitir', kind: 'end' },
+const correctSequence: SequenceStep[] = [
+  { id: 'materials', text: 'Ekmek, peynir ve diğer malzemeleri hazırla.' },
+  { id: 'bread', text: 'Ekmeği aç ve çalışma alanına koy.' },
+  { id: 'fill', text: 'Malzemeleri ekmeğin arasına yerleştir.' },
+  { id: 'machine', text: 'Tost makinesini çalıştır.' },
+  { id: 'place', text: 'Hazırladığın tostu makineye yerleştir.' },
+  { id: 'cook', text: 'Tost pişene kadar bekle.' },
+  { id: 'serve', text: 'Tostu çıkar ve servis et.' },
 ]
 
-const initialSteps: AlgorithmStep[] = [
-  correctSteps[0],
-  correctSteps[2],
-  correctSteps[3],
-  correctSteps[1],
-  correctSteps[4],
-  correctSteps[5],
+const initialSequence: SequenceStep[] = [
+  correctSequence[0],
+  correctSequence[2],
+  correctSequence[1],
+  correctSequence[4],
+  correctSequence[3],
+  correctSequence[6],
+  correctSequence[5],
 ]
 
-const flowRoles = [
-  { id: 'startEnd', label: 'Başla / Bitir', answer: 'oval' },
-  { id: 'input', label: 'Veri girişi', answer: 'parallelogram' },
-  { id: 'process', label: 'İşlem / hesaplama', answer: 'rectangle' },
-  { id: 'output', label: 'Çıktı', answer: 'document' },
-]
+const sequenceHints: Record<string, string> = {
+  bread: 'Malzemeyi ekmeğin arasına koyabilmek için önce ekmeği hazırlaman gerekir.',
+  machine: 'Tostu makineye yerleştirmeden önce makinenin kullanıma hazır olması gerekir.',
+  cook: 'Servis etmeden önce tostun pişmiş olması gerekir.',
+}
 
-const symbolOptions = [
-  { value: '', label: 'Sembol seç' },
-  { value: 'oval', label: 'Oval' },
-  { value: 'rectangle', label: 'Dikdörtgen' },
-  { value: 'parallelogram', label: 'Paralelkenar' },
-  { value: 'document', label: 'Çıktı / belge' },
+const quiz = [
+  {
+    id: 'definition',
+    question: 'Algoritma en iyi hangi ifadeyle açıklanır?',
+    options: [
+      ['a', 'Bilgisayarda yazılan her kod parçası'],
+      ['b', 'Bir problemi çözmek için izlenen açık ve sıralı adımlar'],
+      ['c', 'Sadece matematik problemlerinde kullanılan formül'],
+    ],
+    answer: 'b',
+  },
+  {
+    id: 'order',
+    question: 'Adımların sırası neden önemlidir?',
+    options: [
+      ['a', 'Algoritmayı daha uzun göstermek için'],
+      ['b', 'Bazı adımların çalışabilmesi için önce gerekli bilginin veya işlemin tamamlanması gerektiği için'],
+      ['c', 'Her algoritma aynı sırayı kullandığı için'],
+    ],
+    answer: 'b',
+  },
+  {
+    id: 'clarity',
+    question: 'Hangisi bilgisayar için daha belirsiz bir adımdır?',
+    options: [
+      ['a', 'İki sayıyı topla.'],
+      ['b', 'Sonucu ekrana yaz.'],
+      ['c', 'Biraz işlem yap ve sonucu bul.'],
+    ],
+    answer: 'c',
+  },
 ]
 
 export function AlgorithmLab() {
-  const [stage, setStage] = useState<Stage>('problem')
-  const [analysisAnswers, setAnalysisAnswers] = useState({ input: '', process: '', output: '' })
-  const [analysisFeedback, setAnalysisFeedback] = useState<Feedback>(null)
-  const [steps, setSteps] = useState(initialSteps)
-  const [orderFeedback, setOrderFeedback] = useState<Feedback>(null)
-  const [shortSide, setShortSide] = useState(4)
-  const [longSide, setLongSide] = useState(7)
-  const [activeStep, setActiveStep] = useState(-1)
-  const [flowAnswers, setFlowAnswers] = useState<Record<string, string>>({})
-  const [flowFeedback, setFlowFeedback] = useState<Feedback>(null)
+  const [moduleId, setModuleId] = useState<AlgorithmModuleId>('A1')
+  const [sequence, setSequence] = useState(initialSequence)
+  const [sequenceFeedback, setSequenceFeedback] = useState<Feedback>(null)
+  const [sequencePassed, setSequencePassed] = useState(false)
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({})
+  const [quizFeedback, setQuizFeedback] = useState<Feedback>(null)
+  const selectedModule = getAlgorithmModule(moduleId) ?? algorithmModules[0]
 
-  const analysisCorrect = useMemo(
-    () => analysisAnswers.input === 'kenarlar' && analysisAnswers.process === 'carpma' && analysisAnswers.output === 'alan',
-    [analysisAnswers],
+  const quizScore = useMemo(
+    () => quiz.reduce((score, item) => score + (quizAnswers[item.id] === item.answer ? 1 : 0), 0),
+    [quizAnswers],
   )
+  const a1Complete = sequencePassed && quizScore >= 2
 
-  const orderCorrect = useMemo(
-    () => steps.every((step, index) => step.id === correctSteps[index].id),
-    [steps],
-  )
-
-  const area = shortSide * longSide
+  function chooseModule(id: AlgorithmModuleId) {
+    setModuleId(id)
+    requestAnimationFrame(() => document.getElementById('module-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
 
   function moveStep(index: number, direction: -1 | 1) {
     const target = index + direction
-    if (target < 0 || target >= steps.length) return
-    setSteps((current) => {
+    if (target < 0 || target >= sequence.length) return
+    setSequence((current) => {
       const next = [...current]
       const [item] = next.splice(index, 1)
       next.splice(target, 0, item)
       return next
     })
-    setOrderFeedback(null)
-    setActiveStep(-1)
+    setSequenceFeedback(null)
+    setSequencePassed(false)
   }
 
-  function checkAnalysis() {
-    if (analysisCorrect) {
-      setAnalysisFeedback({ type: 'success', text: 'Doğru. Girdileri, yapılacak işlemi ve beklenen çıktıyı ayırdın. Algoritma yazmadan önce problemin bileşenlerini netleştirmek işimizi kolaylaştırır.' })
-    } else {
-      setAnalysisFeedback({ type: 'error', text: 'Bir kez daha düşün. “Elimde hangi bilgiler var?”, “Bu bilgilerle ne yapacağım?” ve “Sonuçta ne üretmeliyim?” sorularını sırayla cevapla.' })
+  function checkSequence() {
+    const firstWrong = sequence.findIndex((step, index) => step.id !== correctSequence[index].id)
+    if (firstWrong === -1) {
+      setSequencePassed(true)
+      setSequenceFeedback({
+        type: 'success',
+        text: 'Doğru sıra. Her adım, ihtiyaç duyduğu önceki adım tamamlandıktan sonra geliyor. İşte algoritmik düşünmenin ilk çekirdeği bu.',
+      })
+      return
     }
+
+    const misplaced = sequence[firstWrong]
+    const hint = sequenceHints[misplaced.id] ?? 'Bu adımın ihtiyaç duyduğu bir önceki işi düşün. Önce hangi hazırlığın tamamlanmış olması gerekir?'
+    setSequenceFeedback({ type: 'error', text: `${firstWrong + 1}. adımda sıra bozuluyor. İpucu: ${hint}` })
   }
 
-  function checkOrder() {
-    if (orderCorrect) {
-      setOrderFeedback({ type: 'success', text: 'Algoritma doğru sırada. Girdiler alınmadan hesaplama yapılamayacağı için önce iki kenarı okumamız gerekiyor.' })
-    } else {
-      const firstWrong = steps.findIndex((step, index) => step.id !== correctSteps[index].id)
-      setOrderFeedback({ type: 'error', text: `${firstWrong + 1}. adımda akış bozuluyor. Bir işlemin kullanacağı bilgi, o işlemden önce elde edilmiş olmalı.` })
+  function checkQuiz() {
+    const answered = quiz.filter((item) => quizAnswers[item.id]).length
+    if (answered < quiz.length) {
+      setQuizFeedback({ type: 'info', text: 'Üç soruyu da cevapla; sonra birlikte kontrol edelim.' })
+      return
     }
-  }
 
-  function nextRunStep() {
-    setActiveStep((current) => (current >= correctSteps.length - 1 ? -1 : current + 1))
-  }
-
-  function checkFlow() {
-    const correct = flowRoles.every((role) => flowAnswers[role.id] === role.answer)
-    setFlowFeedback(
-      correct
-        ? { type: 'success', text: 'Tüm semboller doğru. Artık metinsel algoritmayı görsel bir akış şemasına dönüştürmek için temel sembolleri biliyorsun.' }
-        : { type: 'error', text: 'Bazı semboller eşleşmedi. İpucu: veri girişi paralelkenarla, hesaplama dikdörtgenle gösterilir.' },
+    setQuizFeedback(
+      quizScore >= 2
+        ? { type: 'success', text: `${quizScore}/3 doğru. A1 kontrolünü geçtin.` }
+        : { type: 'error', text: `${quizScore}/3 doğru. Algoritmanın “açık adımlar + doğru sıra” fikrine yeniden bakıp bir kez daha dene.` },
     )
   }
 
-  const knownValues = {
-    shortSide: activeStep >= 1 ? shortSide : '—',
-    longSide: activeStep >= 2 ? longSide : '—',
-    area: activeStep >= 3 ? area : '—',
+  function resetA1() {
+    setSequence(initialSequence)
+    setSequenceFeedback(null)
+    setSequencePassed(false)
+    setQuizAnswers({})
+    setQuizFeedback(null)
   }
 
   return (
     <div className="algorithm-playground">
-      <div className="algorithm-source-note">
+      <section className="algorithm-source-note">
         <div>
-          <span className="meb-pill">MEB 2026 UYUMLU</span>
-          <strong>Algoritmik Düşünme ve Tasarım</strong>
+          <span className="meb-pill">MEB 9. SINIF</span>
+          <div>
+            <strong>Algoritma Laboratuvarı v1</strong>
+            <p>Problem çözme ve algoritmalar öğrenme alanını küçük, etkileşimli adımlara bölüyoruz.</p>
+          </div>
         </div>
-        <p>Problem analizi → algoritma → akış şeması</p>
-      </div>
+        <span className="roadmap-count">A1–A9 + Final</span>
+      </section>
 
-      <nav className="algorithm-tabs" aria-label="Algoritma laboratuvarı bölümleri">
-        <button className={stage === 'problem' ? 'active' : ''} onClick={() => setStage('problem')}>1. Problemi Analiz Et</button>
-        <button className={stage === 'algorithm' ? 'active' : ''} onClick={() => setStage('algorithm')}>2. Algoritmayı Kur</button>
-        <button className={stage === 'flow' ? 'active' : ''} onClick={() => setStage('flow')}>3. Akış Şeması</button>
-      </nav>
+      <section className="roadmap-section">
+        <div className="section-copy">
+          <span className="panel-kicker">KİLİTLENEN YOL HARİTASI</span>
+          <h2>Önce düşünme biçimi, sonra gösterim.</h2>
+          <p>A1’den başlayıp her modülde aynı öğrenme motorunu kullanacağız: Öğren → Dene → Neden oldu? → Görev → Ustalaştın mı?</p>
+        </div>
 
-      {stage === 'problem' && (
-        <section className="algorithm-stage">
-          <div className="lesson-intro">
-            <span className="lesson-number">01</span>
+        <div className="module-roadmap" aria-label="Algoritma laboratuvarı modülleri">
+          {algorithmModules.map((module, index) => (
+            <button
+              key={module.id}
+              className={`roadmap-card ${module.id === moduleId ? 'active' : ''} ${module.status === 'live' ? 'live' : ''}`}
+              onClick={() => chooseModule(module.id)}
+            >
+              <span className="roadmap-index">{index + 1}</span>
+              <span className="roadmap-code">{module.id}</span>
+              <strong>{module.title}</strong>
+              <small>{module.eyebrow}</small>
+              <em>{module.status === 'live' ? 'CANLI' : 'İÇERİK HAZIR'}</em>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="scope-note">
+        <strong>v1 kapsam sınırı</strong>
+        <p>{algorithmScopeNote}</p>
+      </section>
+
+      <section className="module-detail" id="module-detail">
+        <div className="module-detail-heading">
+          <div>
+            <span className="module-code-badge">{selectedModule.id}</span>
+            <span className="panel-kicker">İÇERİK ENVANTERİ</span>
+          </div>
+          <h2>{selectedModule.title}</h2>
+          <p>{selectedModule.eyebrow}</p>
+        </div>
+
+        <div className="inventory-grid">
+          <article className="inventory-card inventory-wide">
+            <span>1 · KONU ANLATIMI</span>
+            <p>{selectedModule.lesson}</p>
+          </article>
+          <article className="inventory-card inventory-wide">
+            <span>2 · PLAYGROUND NE YAPACAK?</span>
+            <p>{selectedModule.playground}</p>
+          </article>
+          <article className="inventory-card">
+            <span>3 · SORU / ALGORİTMA BANKASI</span>
+            <ol>{selectedModule.exercises.map((exercise) => <li key={exercise}>{exercise}</li>)}</ol>
+          </article>
+          <article className="inventory-card">
+            <span>4 · BAŞARI KRİTERİ</span>
+            <ul>{selectedModule.successCriteria.map((criterion) => <li key={criterion}>{criterion}</li>)}</ul>
+          </article>
+        </div>
+      </section>
+
+      {moduleId === 'A1' ? (
+        <section className="live-lab-section">
+          <div className="live-lab-heading">
             <div>
-              <h2>Önce problemi parçalarına ayıralım.</h2>
-              <p>Senaryo: Kısa ve uzun kenarı verilen bir dikdörtgenin alanını bulmak istiyoruz. Kod yazmadan önce girdiyi, işlemi ve çıktıyı ayır.</p>
+              <span className="live-dot"></span>
+              <span className="panel-kicker">A1 CANLI PLAYGROUND</span>
             </div>
+            <h2>Algoritmayı önce günlük hayatta yakala.</h2>
+            <p>Kod yok. Önce sadece “hangi adım, neden önce?” sorusuna odaklanıyoruz.</p>
           </div>
 
-          <div className="analysis-grid">
-            <article className="analysis-card">
-              <span>GİRDİ</span>
-              <h3>Problemi çözmek için hangi bilgi gerekli?</h3>
-              <div className="choice-group">
-                <button className={analysisAnswers.input === 'kenarlar' ? 'selected' : ''} onClick={() => setAnalysisAnswers((v) => ({ ...v, input: 'kenarlar' }))}>Kısa ve uzun kenar</button>
-                <button className={analysisAnswers.input === 'alan' ? 'selected' : ''} onClick={() => setAnalysisAnswers((v) => ({ ...v, input: 'alan' }))}>Alan sonucu</button>
-              </div>
-            </article>
-
-            <article className="analysis-card">
-              <span>İŞLEM</span>
-              <h3>Girdiler üzerinde hangi işlem yapılmalı?</h3>
-              <div className="choice-group">
-                <button className={analysisAnswers.process === 'toplama' ? 'selected' : ''} onClick={() => setAnalysisAnswers((v) => ({ ...v, process: 'toplama' }))}>Toplama</button>
-                <button className={analysisAnswers.process === 'carpma' ? 'selected' : ''} onClick={() => setAnalysisAnswers((v) => ({ ...v, process: 'carpma' }))}>Çarpma</button>
-              </div>
-            </article>
-
-            <article className="analysis-card">
-              <span>ÇIKTI</span>
-              <h3>Algoritmanın üretmesi gereken sonuç nedir?</h3>
-              <div className="choice-group">
-                <button className={analysisAnswers.output === 'cevre' ? 'selected' : ''} onClick={() => setAnalysisAnswers((v) => ({ ...v, output: 'cevre' }))}>Çevre</button>
-                <button className={analysisAnswers.output === 'alan' ? 'selected' : ''} onClick={() => setAnalysisAnswers((v) => ({ ...v, output: 'alan' }))}>Alan</button>
-              </div>
-            </article>
+          <div className="concept-strip">
+            <Concept label="Problem" text="Çözmek istediğimiz durum" />
+            <Concept label="Çözüm" text="Problemi ortadan kaldıran yol" />
+            <Concept label="Adım" text="Çözüm yolundaki tek işlem" />
+            <Concept label="Sıra" text="Adımların mantıklı ilerleyişi" />
+            <Concept label="Algoritma" text="Açık ve sıralı çözüm adımları" />
           </div>
 
-          <div className="stage-actions">
-            <button className="primary-lab-button" onClick={checkAnalysis}>Cevapları kontrol et</button>
-            {analysisCorrect && <button className="secondary-lab-button" onClick={() => setStage('algorithm')}>Algoritmaya geç →</button>}
-          </div>
-          <FeedbackBox feedback={analysisFeedback} />
-        </section>
-      )}
-
-      {stage === 'algorithm' && (
-        <section className="algorithm-stage">
-          <div className="lesson-intro">
-            <span className="lesson-number">02</span>
-            <div>
-              <h2>Adımları mantıklı bir sıraya getir.</h2>
-              <p>Bir algoritmanın adımları açık, uygulanabilir ve doğru sırada olmalı. Oklarla adımları taşı, ardından kontrol et.</p>
-            </div>
-          </div>
-
-          <div className="algorithm-workbench">
-            <div className="step-builder">
-              {steps.map((step, index) => (
-                <div className={`algorithm-step kind-${step.kind}`} key={step.id}>
-                  <b>{index + 1}</b>
-                  <span>{step.text}</span>
-                  <div className="step-controls">
-                    <button aria-label="Yukarı taşı" onClick={() => moveStep(index, -1)} disabled={index === 0}>↑</button>
-                    <button aria-label="Aşağı taşı" onClick={() => moveStep(index, 1)} disabled={index === steps.length - 1}>↓</button>
-                  </div>
-                </div>
-              ))}
-              <div className="stage-actions compact">
-                <button className="primary-lab-button" onClick={checkOrder}>Sıralamayı kontrol et</button>
-                <button className="text-lab-button" onClick={() => { setSteps(initialSteps); setOrderFeedback(null); setActiveStep(-1) }}>Başa döndür</button>
-              </div>
-              <FeedbackBox feedback={orderFeedback} />
-            </div>
-
-            <div className="runner-panel">
-              <span className="panel-kicker">ADIM ADIM ÇALIŞTIR</span>
-              <h3>Bilgisayar bu algoritmayı nasıl görür?</h3>
-              <div className="number-inputs">
-                <label>Kısa kenar<input type="number" min="1" value={shortSide} onChange={(e) => { setShortSide(Number(e.target.value) || 1); setActiveStep(-1) }} /></label>
-                <label>Uzun kenar<input type="number" min="1" value={longSide} onChange={(e) => { setLongSide(Number(e.target.value) || 1); setActiveStep(-1) }} /></label>
+          <div className="a1-workbench">
+            <div className="sequence-panel">
+              <div className="panel-heading">
+                <span className="panel-kicker">DENE · TOST ALGORİTMASI</span>
+                <h3>Karışık adımları doğru sıraya getir.</h3>
+                <p>Okları kullan. Kontrol ettiğinde sistem yanlış sıradaki ilk bağımlılığı açıklayacak.</p>
               </div>
 
-              <div className="memory-grid">
-                <div><span>kısa</span><strong>{knownValues.shortSide}</strong></div>
-                <div><span>uzun</span><strong>{knownValues.longSide}</strong></div>
-                <div><span>alan</span><strong>{knownValues.area}</strong></div>
-              </div>
-
-              <div className="execution-track">
-                {correctSteps.map((step, index) => (
-                  <div key={step.id} className={index === activeStep ? 'active' : index < activeStep ? 'done' : ''}>
-                    <span>{index + 1}</span>{step.text}
+              <div className="sequence-list">
+                {sequence.map((step, index) => (
+                  <div className="sequence-step" key={step.id}>
+                    <b>{index + 1}</b>
+                    <span>{step.text}</span>
+                    <div className="step-controls">
+                      <button aria-label="Yukarı taşı" onClick={() => moveStep(index, -1)} disabled={index === 0}>↑</button>
+                      <button aria-label="Aşağı taşı" onClick={() => moveStep(index, 1)} disabled={index === sequence.length - 1}>↓</button>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              {activeStep >= 4 && <div className="program-output">Çıktı: <strong>{area}</strong></div>}
-              <button className="primary-lab-button full" onClick={nextRunStep}>{activeStep >= correctSteps.length - 1 ? 'Yeniden başlat' : 'Sonraki adım →'}</button>
+              <div className="stage-actions">
+                <button className="primary-lab-button" onClick={checkSequence}>Sırayı kontrol et</button>
+                <button className="text-lab-button" onClick={() => { setSequence(initialSequence); setSequenceFeedback(null); setSequencePassed(false) }}>Karıştırılmış hâle dön</button>
+              </div>
+              <FeedbackBox feedback={sequenceFeedback} />
             </div>
+
+            <div className="quiz-panel">
+              <div className="panel-heading">
+                <span className="panel-kicker">USTALAŞTIN MI?</span>
+                <h3>3 kısa kontrol sorusu</h3>
+                <p>En az 2 doğru cevap A1 kontrolünü geçmek için yeterli.</p>
+              </div>
+
+              <div className="quiz-list">
+                {quiz.map((item, questionIndex) => (
+                  <fieldset key={item.id}>
+                    <legend>{questionIndex + 1}. {item.question}</legend>
+                    {item.options.map(([value, label]) => (
+                      <label key={value} className={quizAnswers[item.id] === value ? 'selected' : ''}>
+                        <input
+                          type="radio"
+                          name={item.id}
+                          value={value}
+                          checked={quizAnswers[item.id] === value}
+                          onChange={() => { setQuizAnswers((current) => ({ ...current, [item.id]: value })); setQuizFeedback(null) }}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                ))}
+              </div>
+
+              <button className="primary-lab-button full" onClick={checkQuiz}>Kontrol sorularını değerlendir</button>
+              <FeedbackBox feedback={quizFeedback} />
+            </div>
+          </div>
+
+          <div className={`completion-card ${a1Complete ? 'complete' : ''}`}>
+            <div>
+              <span>{a1Complete ? '✓' : 'A1'}</span>
+              <div>
+                <strong>{a1Complete ? 'A1 tamamlandı: Algoritmaya Giriş' : 'A1 başarı kapısı'}</strong>
+                <p>{a1Complete ? 'Sıra bağımlılığını kurdun ve temel kavram kontrolünü geçtin. Sıradaki modül A2 Problem Analizi.' : 'Sıralama görevini doğru tamamla ve kontrol sorularında en az 2/3 yap.'}</p>
+              </div>
+            </div>
+            {a1Complete ? (
+              <button className="secondary-lab-button" onClick={() => chooseModule('A2')}>A2 envanterine geç →</button>
+            ) : (
+              <button className="text-lab-button" onClick={resetA1}>A1’i sıfırla</button>
+            )}
           </div>
         </section>
-      )}
-
-      {stage === 'flow' && (
-        <section className="algorithm-stage">
-          <div className="lesson-intro">
-            <span className="lesson-number">03</span>
-            <div>
-              <h2>Algoritmayı şekillerle ifade et.</h2>
-              <p>Akış şeması, algoritmadaki işlemleri özel sembollerle görselleştirir. Her görevi doğru sembolle eşleştir.</p>
-            </div>
+      ) : (
+        <section className="coming-next-card">
+          <span>{selectedModule.id}</span>
+          <div>
+            <strong>Bu modülün içeriği artık kilitli.</strong>
+            <p>Bir sonraki geliştirme turunda bu envanteri doğrudan etkileşimli ekrana çevireceğiz. Şimdilik canlı uygulama A1’de.</p>
           </div>
-
-          <div className="flow-layout">
-            <div className="flow-lesson">
-              {flowRoles.map((role) => (
-                <label className="flow-match-row" key={role.id}>
-                  <div className={`flow-shape preview-${flowAnswers[role.id] || 'empty'}`}></div>
-                  <strong>{role.label}</strong>
-                  <select value={flowAnswers[role.id] || ''} onChange={(e) => setFlowAnswers((v) => ({ ...v, [role.id]: e.target.value }))}>
-                    {symbolOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}
-                  </select>
-                </label>
-              ))}
-              <div className="stage-actions compact">
-                <button className="primary-lab-button" onClick={checkFlow}>Sembolleri kontrol et</button>
-              </div>
-              <FeedbackBox feedback={flowFeedback} />
-            </div>
-
-            <div className="flow-preview-card">
-              <span className="panel-kicker">ÖRNEK AKIŞ</span>
-              <h3>Dikdörtgen alanı</h3>
-              <div className="flow-diagram">
-                <FlowNode kind="oval" text="Başla" />
-                <FlowArrow />
-                <FlowNode kind="parallelogram" text="Kısa, uzun kenarı oku" />
-                <FlowArrow />
-                <FlowNode kind="rectangle" text="Alan = kısa × uzun" />
-                <FlowArrow />
-                <FlowNode kind="document" text="Alanı yaz" />
-                <FlowArrow />
-                <FlowNode kind="oval" text="Bitir" />
-              </div>
-            </div>
-          </div>
-
-          <div className="meb-learning-note">
-            <strong>Neden böyle öğreniyoruz?</strong>
-            <p>2026 Programlama Temelleri programında bu modülün hedefi, bir problem senaryosu üzerinde algoritmik düşünme sürecini yapılandırmak ve çözüm algoritması için akış şeması hazırlayabilmek.</p>
-          </div>
+          <button className="secondary-lab-button" onClick={() => chooseModule('A1')}>A1 playground’a dön</button>
         </section>
       )}
     </div>
   )
 }
 
+function Concept({ label, text }: { label: string; text: string }) {
+  return <div className="concept-card"><strong>{label}</strong><span>{text}</span></div>
+}
+
 function FeedbackBox({ feedback }: { feedback: Feedback }) {
   if (!feedback) return null
   return <div className={`lab-feedback ${feedback.type}`}>{feedback.text}</div>
-}
-
-function FlowNode({ kind, text }: { kind: 'oval' | 'parallelogram' | 'rectangle' | 'document'; text: string }) {
-  return <div className={`flow-node flow-${kind}`}>{text}</div>
-}
-
-function FlowArrow() {
-  return <div className="flow-arrow">↓</div>
 }
