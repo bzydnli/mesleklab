@@ -1,10 +1,4 @@
 import { useMemo, useState } from 'react'
-import {
-  algorithmModules,
-  algorithmScopeNote,
-  getAlgorithmModule,
-  type AlgorithmModuleId,
-} from '../../data/algorithmCurriculum'
 import './AlgorithmLab.css'
 
 type Feedback = { type: 'success' | 'error' | 'info'; text: string } | null
@@ -14,88 +8,107 @@ type SequenceStep = {
   text: string
 }
 
+type MissionId = 1 | 2 | 3
+
+const roadmap = [
+  ['A1', 'Algoritmaya Giriş'],
+  ['A2', 'Problem Analizi'],
+  ['A3', 'İyi Algoritmanın Özellikleri'],
+  ['A4', 'Doğrusal Algoritmalar'],
+  ['A5', 'Sözde Kod'],
+  ['A6', 'Adım Adım Çalıştırıcı'],
+  ['A7', 'Akış Şeması Sembolleri'],
+  ['A8', 'Akış Şeması Kurucu'],
+  ['A9', 'Hata Avcısı'],
+  ['Final', 'Final Görevi'],
+] as const
+
 const correctSequence: SequenceStep[] = [
-  { id: 'materials', text: 'Ekmek, peynir ve diğer malzemeleri hazırla.' },
-  { id: 'bread', text: 'Ekmeği aç ve çalışma alanına koy.' },
-  { id: 'fill', text: 'Malzemeleri ekmeğin arasına yerleştir.' },
-  { id: 'machine', text: 'Tost makinesini çalıştır.' },
-  { id: 'place', text: 'Hazırladığın tostu makineye yerleştir.' },
-  { id: 'cook', text: 'Tost pişene kadar bekle.' },
-  { id: 'serve', text: 'Tostu çıkar ve servis et.' },
+  { id: 'save', text: 'Ödev dosyasını kaydet.' },
+  { id: 'mail', text: 'E-posta uygulamasını aç.' },
+  { id: 'new', text: 'Yeni mesaj oluştur.' },
+  { id: 'recipient', text: 'Alıcının adresini yaz.' },
+  { id: 'attach', text: 'Ödev dosyasını mesaja ekle.' },
+  { id: 'send', text: 'Gönder düğmesine bas.' },
 ]
 
 const initialSequence: SequenceStep[] = [
-  correctSequence[0],
-  correctSequence[2],
   correctSequence[1],
-  correctSequence[4],
+  correctSequence[0],
   correctSequence[3],
-  correctSequence[6],
+  correctSequence[2],
   correctSequence[5],
+  correctSequence[4],
 ]
 
 const sequenceHints: Record<string, string> = {
-  bread: 'Malzemeyi ekmeğin arasına koyabilmek için önce ekmeği hazırlaman gerekir.',
-  machine: 'Tostu makineye yerleştirmeden önce makinenin kullanıma hazır olması gerekir.',
-  cook: 'Servis etmeden önce tostun pişmiş olması gerekir.',
+  save: 'Göndereceğin dosyanın önce hazır ve kaydedilmiş olması gerekir.',
+  new: 'Alıcı yazabilmek için önce yeni bir mesaj oluşturmalısın.',
+  attach: 'Mesajı göndermeden önce ödev dosyasını eklemelisin.',
+  send: 'Gönder düğmesi en son işi yapar; önce mesajın hazırlanmış olması gerekir.',
 }
 
-const quiz = [
+const missingOptions = [
+  ['copy', 'Kopyala düğmesine bas.'],
+  ['folder', 'Çıkan sayfayı dosyaya koy.'],
+  ['shutdown', 'Bilgisayarı kapat.'],
+] as const
+
+const precisionChallenges = [
   {
-    id: 'definition',
-    question: 'Algoritma en iyi hangi ifadeyle açıklanır?',
+    id: 'pen',
+    prompt: 'Bir robota kırmızı kalemi kutuya koyduracaksın. Hangisini daha kolay uygular?',
     options: [
-      ['a', 'Bilgisayarda yazılan her kod parçası'],
-      ['b', 'Bir problemi çözmek için izlenen açık ve sıralı adımlar'],
-      ['c', 'Sadece matematik problemlerinde kullanılan formül'],
+      ['a', 'Kalemi hallet.'],
+      ['b', 'Masadaki kırmızı kalemi al ve kalem kutusuna koy.'],
     ],
     answer: 'b',
   },
   {
-    id: 'order',
-    question: 'Adımların sırası neden önemlidir?',
+    id: 'water',
+    prompt: 'Robotun bardağı yarıya kadar suyla doldurması gerekiyor.',
     options: [
-      ['a', 'Algoritmayı daha uzun göstermek için'],
-      ['b', 'Bazı adımların çalışabilmesi için önce gerekli bilginin veya işlemin tamamlanması gerektiği için'],
-      ['c', 'Her algoritma aynı sırayı kullandığı için'],
+      ['a', 'Bardağı musluğun altına koy ve yarısına kadar su doldur.'],
+      ['b', 'Biraz su koy.'],
+    ],
+    answer: 'a',
+  },
+  {
+    id: 'file',
+    prompt: 'Robot masaüstündeki “odev.pdf” dosyasını açacak.',
+    options: [
+      ['a', 'Dosyayı aç.'],
+      ['b', 'Masaüstündeki “odev.pdf” dosyasına çift tıkla.'],
     ],
     answer: 'b',
   },
-  {
-    id: 'clarity',
-    question: 'Hangisi bilgisayar için daha belirsiz bir adımdır?',
-    options: [
-      ['a', 'İki sayıyı topla.'],
-      ['b', 'Sonucu ekrana yaz.'],
-      ['c', 'Biraz işlem yap ve sonucu bul.'],
-    ],
-    answer: 'c',
-  },
-]
+] as const
 
 export function AlgorithmLab() {
-  const [moduleId, setModuleId] = useState<AlgorithmModuleId>('A1')
+  const [activeMission, setActiveMission] = useState<MissionId>(1)
+  const [completed, setCompleted] = useState<Record<MissionId, boolean>>({ 1: false, 2: false, 3: false })
+
   const [sequence, setSequence] = useState(initialSequence)
   const [sequenceFeedback, setSequenceFeedback] = useState<Feedback>(null)
-  const [sequencePassed, setSequencePassed] = useState(false)
-  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({})
-  const [quizFeedback, setQuizFeedback] = useState<Feedback>(null)
-  const selectedModule = getAlgorithmModule(moduleId) ?? algorithmModules[0]
 
-  const quizScore = useMemo(
-    () => quiz.reduce((score, item) => score + (quizAnswers[item.id] === item.answer ? 1 : 0), 0),
-    [quizAnswers],
+  const [missingChoice, setMissingChoice] = useState('')
+  const [missingFeedback, setMissingFeedback] = useState<Feedback>(null)
+
+  const [precisionAnswers, setPrecisionAnswers] = useState<Record<string, string>>({})
+  const [precisionFeedback, setPrecisionFeedback] = useState<Feedback>(null)
+
+  const precisionScore = useMemo(
+    () => precisionChallenges.reduce((score, item) => score + (precisionAnswers[item.id] === item.answer ? 1 : 0), 0),
+    [precisionAnswers],
   )
-  const a1Complete = sequencePassed && quizScore >= 2
 
-  function chooseModule(id: AlgorithmModuleId) {
-    setModuleId(id)
-    requestAnimationFrame(() => document.getElementById('module-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  }
+  const completedCount = Object.values(completed).filter(Boolean).length
+  const a1Complete = completedCount === 3
 
   function moveStep(index: number, direction: -1 | 1) {
     const target = index + direction
     if (target < 0 || target >= sequence.length) return
+
     setSequence((current) => {
       const next = [...current]
       const [item] = next.splice(index, 1)
@@ -103,144 +116,122 @@ export function AlgorithmLab() {
       return next
     })
     setSequenceFeedback(null)
-    setSequencePassed(false)
+  }
+
+  function completeMission(id: MissionId) {
+    setCompleted((current) => ({ ...current, [id]: true }))
   }
 
   function checkSequence() {
     const firstWrong = sequence.findIndex((step, index) => step.id !== correctSequence[index].id)
+
     if (firstWrong === -1) {
-      setSequencePassed(true)
+      completeMission(1)
       setSequenceFeedback({
         type: 'success',
-        text: 'Doğru sıra. Her adım, ihtiyaç duyduğu önceki adım tamamlandıktan sonra geliyor. İşte algoritmik düşünmenin ilk çekirdeği bu.',
+        text: 'Oldu! Mesaj gönderilebilmek için gereken işler doğru sıraya oturdu.',
       })
       return
     }
 
     const misplaced = sequence[firstWrong]
-    const hint = sequenceHints[misplaced.id] ?? 'Bu adımın ihtiyaç duyduğu bir önceki işi düşün. Önce hangi hazırlığın tamamlanmış olması gerekir?'
-    setSequenceFeedback({ type: 'error', text: `${firstWrong + 1}. adımda sıra bozuluyor. İpucu: ${hint}` })
+    const hint = sequenceHints[misplaced.id] ?? 'Bu adım yapılmadan hemen önce hangi işin tamamlanmış olması gerektiğini düşün.'
+    setSequenceFeedback({ type: 'error', text: `${firstWrong + 1}. sırada bir şey ters gidiyor. ${hint}` })
   }
 
-  function checkQuiz() {
-    const answered = quiz.filter((item) => quizAnswers[item.id]).length
-    if (answered < quiz.length) {
-      setQuizFeedback({ type: 'info', text: 'Üç soruyu da cevapla; sonra birlikte kontrol edelim.' })
+  function checkMissingStep() {
+    if (!missingChoice) {
+      setMissingFeedback({ type: 'info', text: 'Boşluğa gelecek adımı seç.' })
       return
     }
 
-    setQuizFeedback(
-      quizScore >= 2
-        ? { type: 'success', text: `${quizScore}/3 doğru. A1 kontrolünü geçtin.` }
-        : { type: 'error', text: `${quizScore}/3 doğru. Algoritmanın “açık adımlar + doğru sıra” fikrine yeniden bakıp bir kez daha dene.` },
-    )
+    if (missingChoice === 'copy') {
+      completeMission(2)
+      setMissingFeedback({
+        type: 'success',
+        text: 'Evet. Kâğıdı yerleştirmek tek başına yetmez; makineye kopyalama işlemini başlatmasını söylemek gerekiyor.',
+      })
+    } else {
+      setMissingFeedback({
+        type: 'error',
+        text: 'Bu adım boşluğu doldurmuyor. Çıktıyı alabilmek için önce makinenin hangi işlemi yapması gerekiyor?',
+      })
+    }
+  }
+
+  function checkPrecision() {
+    const answered = precisionChallenges.filter((item) => precisionAnswers[item.id]).length
+
+    if (answered < precisionChallenges.length) {
+      setPrecisionFeedback({ type: 'info', text: 'Üç robot kartını da tamamla.' })
+      return
+    }
+
+    if (precisionScore === precisionChallenges.length) {
+      completeMission(3)
+      setPrecisionFeedback({
+        type: 'success',
+        text: 'Robot artık ne yapacağını tahmin etmek zorunda değil. Her komut açık ve uygulanabilir.',
+      })
+    } else {
+      setPrecisionFeedback({
+        type: 'error',
+        text: `${precisionScore}/3 kart net. Robotun yorum yapmak zorunda kalacağı komutları tekrar düşün.`,
+      })
+    }
   }
 
   function resetA1() {
+    setActiveMission(1)
+    setCompleted({ 1: false, 2: false, 3: false })
     setSequence(initialSequence)
     setSequenceFeedback(null)
-    setSequencePassed(false)
-    setQuizAnswers({})
-    setQuizFeedback(null)
+    setMissingChoice('')
+    setMissingFeedback(null)
+    setPrecisionAnswers({})
+    setPrecisionFeedback(null)
   }
+
+  const missionUnlocked = (id: MissionId) => id === 1 || completed[(id - 1) as MissionId]
 
   return (
     <div className="algorithm-playground">
-      <section className="algorithm-source-note">
+      <section className="playground-intro">
         <div>
-          <span className="meb-pill">MEB 9. SINIF</span>
-          <div>
-            <strong>Algoritma Laboratuvarı v1</strong>
-            <p>Problem çözme ve algoritmalar öğrenme alanını küçük, etkileşimli adımlara bölüyoruz.</p>
-          </div>
+          <span className="level-pill">9. sınıf seviyesi · sıfırdan başla</span>
+          <h2>Bir işi bilgisayara yaptırabilecek kadar net düşünebilir misin?</h2>
+          <p>Tanım ezberlemek yok. Küçük görevleri çöz, mantığı kendin yakala.</p>
         </div>
-        <span className="roadmap-count">A1–A9 + Final</span>
-      </section>
-
-      <section className="roadmap-section">
-        <div className="section-copy">
-          <span className="panel-kicker">KİLİTLENEN YOL HARİTASI</span>
-          <h2>Önce düşünme biçimi, sonra gösterim.</h2>
-          <p>A1’den başlayıp her modülde aynı öğrenme motorunu kullanacağız: Öğren → Dene → Neden oldu? → Görev → Ustalaştın mı?</p>
-        </div>
-
-        <div className="module-roadmap" aria-label="Algoritma laboratuvarı modülleri">
-          {algorithmModules.map((module, index) => (
-            <button
-              key={module.id}
-              className={`roadmap-card ${module.id === moduleId ? 'active' : ''} ${module.status === 'live' ? 'live' : ''}`}
-              onClick={() => chooseModule(module.id)}
-            >
-              <span className="roadmap-index">{index + 1}</span>
-              <span className="roadmap-code">{module.id}</span>
-              <strong>{module.title}</strong>
-              <small>{module.eyebrow}</small>
-              <em>{module.status === 'live' ? 'CANLI' : 'İÇERİK HAZIR'}</em>
-            </button>
-          ))}
+        <div className="a1-progress" aria-label={`A1 ilerleme ${completedCount}/3`}>
+          <strong>{completedCount}/3</strong>
+          <span>görev tamamlandı</span>
         </div>
       </section>
 
-      <section className="scope-note">
-        <strong>v1 kapsam sınırı</strong>
-        <p>{algorithmScopeNote}</p>
+      <section className="roadmap-strip" aria-label="Algoritma laboratuvarı yol haritası">
+        {roadmap.map(([code, title], index) => (
+          <button key={code} className={index === 0 ? 'active' : ''} disabled={index !== 0} title={index === 0 ? title : `${title} · yakında`}>
+            <span>{code}</span>
+            <strong>{title}</strong>
+            {index !== 0 && <em>🔒</em>}
+          </button>
+        ))}
       </section>
 
-      <section className="module-detail" id="module-detail">
-        <div className="module-detail-heading">
-          <div>
-            <span className="module-code-badge">{selectedModule.id}</span>
-            <span className="panel-kicker">İÇERİK ENVANTERİ</span>
-          </div>
-          <h2>{selectedModule.title}</h2>
-          <p>{selectedModule.eyebrow}</p>
+      <section className="mission-shell">
+        <div className="mission-nav" aria-label="A1 görevleri">
+          <MissionButton id={1} title="Karışıklığı çöz" subtitle="Doğru sırayı kur" active={activeMission === 1} complete={completed[1]} unlocked onClick={() => setActiveMission(1)} />
+          <MissionButton id={2} title="Kayıp adımı bul" subtitle="Eksik parçayı tamamla" active={activeMission === 2} complete={completed[2]} unlocked={missionUnlocked(2)} onClick={() => setActiveMission(2)} />
+          <MissionButton id={3} title="Robot bunu anlar mı?" subtitle="Komutu netleştir" active={activeMission === 3} complete={completed[3]} unlocked={missionUnlocked(3)} onClick={() => setActiveMission(3)} />
         </div>
 
-        <div className="inventory-grid">
-          <article className="inventory-card inventory-wide">
-            <span>1 · KONU ANLATIMI</span>
-            <p>{selectedModule.lesson}</p>
-          </article>
-          <article className="inventory-card inventory-wide">
-            <span>2 · PLAYGROUND NE YAPACAK?</span>
-            <p>{selectedModule.playground}</p>
-          </article>
-          <article className="inventory-card">
-            <span>3 · SORU / ALGORİTMA BANKASI</span>
-            <ol>{selectedModule.exercises.map((exercise) => <li key={exercise}>{exercise}</li>)}</ol>
-          </article>
-          <article className="inventory-card">
-            <span>4 · BAŞARI KRİTERİ</span>
-            <ul>{selectedModule.successCriteria.map((criterion) => <li key={criterion}>{criterion}</li>)}</ul>
-          </article>
-        </div>
-      </section>
-
-      {moduleId === 'A1' ? (
-        <section className="live-lab-section">
-          <div className="live-lab-heading">
-            <div>
-              <span className="live-dot"></span>
-              <span className="panel-kicker">A1 CANLI PLAYGROUND</span>
-            </div>
-            <h2>Algoritmayı önce günlük hayatta yakala.</h2>
-            <p>Kod yok. Önce sadece “hangi adım, neden önce?” sorusuna odaklanıyoruz.</p>
-          </div>
-
-          <div className="concept-strip">
-            <Concept label="Problem" text="Çözmek istediğimiz durum" />
-            <Concept label="Çözüm" text="Problemi ortadan kaldıran yol" />
-            <Concept label="Adım" text="Çözüm yolundaki tek işlem" />
-            <Concept label="Sıra" text="Adımların mantıklı ilerleyişi" />
-            <Concept label="Algoritma" text="Açık ve sıralı çözüm adımları" />
-          </div>
-
-          <div className="a1-workbench">
-            <div className="sequence-panel">
-              <div className="panel-heading">
-                <span className="panel-kicker">DENE · TOST ALGORİTMASI</span>
-                <h3>Karışık adımları doğru sıraya getir.</h3>
-                <p>Okları kullan. Kontrol ettiğinde sistem yanlış sıradaki ilk bağımlılığı açıklayacak.</p>
+        <div className="mission-stage">
+          {activeMission === 1 && (
+            <div className="mission-content">
+              <div className="mission-heading">
+                <span>GÖREV 1</span>
+                <h3>Ödevini e-postayla göndereceksin.</h3>
+                <p>Adımlar karışmış. Oklarla doğru sıraya getir.</p>
               </div>
 
               <div className="sequence-list">
@@ -257,31 +248,68 @@ export function AlgorithmLab() {
               </div>
 
               <div className="stage-actions">
-                <button className="primary-lab-button" onClick={checkSequence}>Sırayı kontrol et</button>
-                <button className="text-lab-button" onClick={() => { setSequence(initialSequence); setSequenceFeedback(null); setSequencePassed(false) }}>Karıştırılmış hâle dön</button>
+                <button className="primary-lab-button" onClick={checkSequence}>Kontrol et</button>
+                <button className="text-lab-button" onClick={() => { setSequence(initialSequence); setSequenceFeedback(null) }}>Başa al</button>
+                {completed[1] && <button className="secondary-lab-button" onClick={() => setActiveMission(2)}>Sonraki görev →</button>}
               </div>
               <FeedbackBox feedback={sequenceFeedback} />
             </div>
+          )}
 
-            <div className="quiz-panel">
-              <div className="panel-heading">
-                <span className="panel-kicker">USTALAŞTIN MI?</span>
-                <h3>3 kısa kontrol sorusu</h3>
-                <p>En az 2 doğru cevap A1 kontrolünü geçmek için yeterli.</p>
+          {activeMission === 2 && (
+            <div className="mission-content">
+              <div className="mission-heading">
+                <span>GÖREV 2</span>
+                <h3>Fotokopi makinesi bir adımı unutmuş.</h3>
+                <p>Boşluğu tamamla; yoksa makine çıktıyı üretemez.</p>
               </div>
 
-              <div className="quiz-list">
-                {quiz.map((item, questionIndex) => (
+              <div className="missing-flow">
+                <FlowStep number="1" text="Belgeyi tarayıcı camına yerleştir." />
+                <FlowArrow />
+                <FlowStep number="2" text="Kapağı kapat." />
+                <FlowArrow />
+                <div className="missing-slot">?</div>
+                <FlowArrow />
+                <FlowStep number="4" text="Çıkan kopyayı al." />
+              </div>
+
+              <div className="missing-options">
+                {missingOptions.map(([value, label]) => (
+                  <button key={value} className={missingChoice === value ? 'selected' : ''} onClick={() => { setMissingChoice(value); setMissingFeedback(null) }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="stage-actions">
+                <button className="primary-lab-button" onClick={checkMissingStep}>Boşluğu tamamla</button>
+                {completed[2] && <button className="secondary-lab-button" onClick={() => setActiveMission(3)}>Sonraki görev →</button>}
+              </div>
+              <FeedbackBox feedback={missingFeedback} />
+            </div>
+          )}
+
+          {activeMission === 3 && (
+            <div className="mission-content">
+              <div className="mission-heading">
+                <span>GÖREV 3</span>
+                <h3>Robot yalnızca söylediğini yapar.</h3>
+                <p>Her kartta robotun tahmin yürütmeden uygulayabileceği komutu seç.</p>
+              </div>
+
+              <div className="precision-grid">
+                {precisionChallenges.map((item, index) => (
                   <fieldset key={item.id}>
-                    <legend>{questionIndex + 1}. {item.question}</legend>
+                    <legend><span>{index + 1}</span>{item.prompt}</legend>
                     {item.options.map(([value, label]) => (
-                      <label key={value} className={quizAnswers[item.id] === value ? 'selected' : ''}>
+                      <label key={value} className={precisionAnswers[item.id] === value ? 'selected' : ''}>
                         <input
                           type="radio"
                           name={item.id}
                           value={value}
-                          checked={quizAnswers[item.id] === value}
-                          onChange={() => { setQuizAnswers((current) => ({ ...current, [item.id]: value })); setQuizFeedback(null) }}
+                          checked={precisionAnswers[item.id] === value}
+                          onChange={() => { setPrecisionAnswers((current) => ({ ...current, [item.id]: value })); setPrecisionFeedback(null) }}
                         />
                         <span>{label}</span>
                       </label>
@@ -290,42 +318,45 @@ export function AlgorithmLab() {
                 ))}
               </div>
 
-              <button className="primary-lab-button full" onClick={checkQuiz}>Kontrol sorularını değerlendir</button>
-              <FeedbackBox feedback={quizFeedback} />
-            </div>
-          </div>
-
-          <div className={`completion-card ${a1Complete ? 'complete' : ''}`}>
-            <div>
-              <span>{a1Complete ? '✓' : 'A1'}</span>
-              <div>
-                <strong>{a1Complete ? 'A1 tamamlandı: Algoritmaya Giriş' : 'A1 başarı kapısı'}</strong>
-                <p>{a1Complete ? 'Sıra bağımlılığını kurdun ve temel kavram kontrolünü geçtin. Sıradaki modül A2 Problem Analizi.' : 'Sıralama görevini doğru tamamla ve kontrol sorularında en az 2/3 yap.'}</p>
+              <div className="stage-actions">
+                <button className="primary-lab-button" onClick={checkPrecision}>Robotları çalıştır</button>
               </div>
+              <FeedbackBox feedback={precisionFeedback} />
             </div>
-            {a1Complete ? (
-              <button className="secondary-lab-button" onClick={() => chooseModule('A2')}>A2 envanterine geç →</button>
-            ) : (
-              <button className="text-lab-button" onClick={resetA1}>A1’i sıfırla</button>
-            )}
-          </div>
-        </section>
-      ) : (
-        <section className="coming-next-card">
-          <span>{selectedModule.id}</span>
+          )}
+        </div>
+      </section>
+
+      {a1Complete && (
+        <section className="discovery-card">
+          <div className="discovery-icon">✓</div>
           <div>
-            <strong>Bu modülün içeriği artık kilitli.</strong>
-            <p>Bir sonraki geliştirme turunda bu envanteri doğrudan etkileşimli ekrana çevireceğiz. Şimdilik canlı uygulama A1’de.</p>
+            <span>FARK ETMEDEN NE YAPTIN?</span>
+            <h3>Bir işi küçük, açık ve doğru sıralanmış adımlara böldün.</h3>
+            <p>Sıra kurdun, eksik adımı fark ettin ve belirsiz komutları netleştirdin. İşte algoritmik düşünmenin başlangıcı tam olarak bu.</p>
           </div>
-          <button className="secondary-lab-button" onClick={() => chooseModule('A1')}>A1 playground’a dön</button>
+          <button className="text-lab-button" onClick={resetA1}>A1’i yeniden oyna</button>
         </section>
       )}
     </div>
   )
 }
 
-function Concept({ label, text }: { label: string; text: string }) {
-  return <div className="concept-card"><strong>{label}</strong><span>{text}</span></div>
+function MissionButton({ id, title, subtitle, active, complete, unlocked, onClick }: { id: MissionId; title: string; subtitle: string; active: boolean; complete: boolean; unlocked: boolean; onClick: () => void }) {
+  return (
+    <button className={`${active ? 'active' : ''} ${complete ? 'complete' : ''}`} onClick={onClick} disabled={!unlocked}>
+      <b>{complete ? '✓' : id}</b>
+      <span><strong>{title}</strong><small>{unlocked ? subtitle : 'Önceki görevi tamamla'}</small></span>
+    </button>
+  )
+}
+
+function FlowStep({ number, text }: { number: string; text: string }) {
+  return <div className="flow-step"><b>{number}</b><span>{text}</span></div>
+}
+
+function FlowArrow() {
+  return <div className="flow-arrow">↓</div>
 }
 
 function FeedbackBox({ feedback }: { feedback: Feedback }) {
