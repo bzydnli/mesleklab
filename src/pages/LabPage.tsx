@@ -27,7 +27,7 @@ export function LabPage() {
         </div>
       </section>
 
-      <div className="lab-layout">
+      <div className={`lab-layout ${isAlgorithmLab ? 'algorithm-layout' : ''}`}>
         <section className="lab-main-panel">
           {isAlgorithmLab ? (
             <AlgorithmLab />
@@ -47,16 +47,18 @@ export function LabPage() {
           )}
         </section>
 
-        <aside className="lab-sidebar">
-          <div className="info-card">
-            <span className="kicker">KONU BAŞLIKLARI</span>
-            <div className="chips">{lab.topics.map((topic) => <span key={topic}>{topic}</span>)}</div>
-          </div>
-          <div className="info-card">
-            <span className="kicker">ÖĞRENME HEDEFLERİ</span>
-            <ul>{lab.outcomes.map((item) => <li key={item}>{item}</li>)}</ul>
-          </div>
-        </aside>
+        {!isAlgorithmLab && (
+          <aside className="lab-sidebar">
+            <div className="info-card">
+              <span className="kicker">KONU BAŞLIKLARI</span>
+              <div className="chips">{lab.topics.map((topic) => <span key={topic}>{topic}</span>)}</div>
+            </div>
+            <div className="info-card">
+              <span className="kicker">ÖĞRENME HEDEFLERİ</span>
+              <ul>{lab.outcomes.map((item) => <li key={item}>{item}</li>)}</ul>
+            </div>
+          </aside>
+        )}
       </div>
 
       {!isAlgorithmLab && (
