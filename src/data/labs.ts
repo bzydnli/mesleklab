@@ -24,9 +24,9 @@ export const areas: AreaDefinition[] = [
 export const labs: LabDefinition[] = [
   {
     id: 'algoritma', areaId: 'bilisim', title: 'Algoritma Laboratuvarı', shortTitle: 'Algoritma', icon: '🧩',
-    description: 'Akış şemaları, karar yapıları ve döngüleri adım adım görselleştir.', grade: '9. sınıf', status: 'foundation', path: '/bilisim/algoritma',
-    topics: ['Akış şemaları', 'Koşullar', 'Döngüler', 'Adım adım çalışma'],
-    outcomes: ['Problemi adımlara ayırma', 'Algoritma akışını takip etme', 'Koşul ve döngü mantığını kavrama'],
+    description: 'Problemi analiz et, çözüm adımlarını sırala ve algoritmanı akış şemasına dönüştür.', grade: '9. sınıf · MEB 2026', status: 'foundation', path: '/bilisim/algoritma',
+    topics: ['Problem analizi', 'Algoritmik düşünme', 'Algoritma adımları', 'Akış şeması'],
+    outcomes: ['Problem senaryosunu bileşenlerine ayırma', 'Probleme uygun algoritmik çözüm tasarlama', 'Çözüm algoritması için akış şeması hazırlama'],
   },
   {
     id: 'programlama', areaId: 'bilisim', title: 'Programlama Laboratuvarı', shortTitle: 'Programlama', icon: '⌨️',
