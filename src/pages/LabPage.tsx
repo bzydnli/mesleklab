@@ -1,7 +1,7 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { getArea, getLab } from '../data/labs'
 import { StatusBadge } from '../components/StatusBadge'
-import { AlgorithmLab } from '../components/algorithm/AlgorithmLab'
+import { DeliveryWorld } from '../components/algorithm/DeliveryWorld'
 
 export function LabPage() {
   const { areaId = '', labId = '' } = useParams()
@@ -10,7 +10,7 @@ export function LabPage() {
 
   if (!area || !lab) return <Navigate to="/404" replace />
 
-  const isAlgorithmLab = areaId === 'bilisim' && labId === 'algoritma'
+  const isDeliveryWorld = areaId === 'bilisim' && labId === 'algoritma'
 
   return (
     <div className="page-width lab-page">
@@ -27,10 +27,10 @@ export function LabPage() {
         </div>
       </section>
 
-      <div className={`lab-layout ${isAlgorithmLab ? 'algorithm-layout' : ''}`}>
+      <div className={`lab-layout ${isDeliveryWorld ? 'algorithm-layout' : ''}`}>
         <section className="lab-main-panel">
-          {isAlgorithmLab ? (
-            <AlgorithmLab />
+          {isDeliveryWorld ? (
+            <DeliveryWorld />
           ) : (
             <div className="placeholder-stage">
               <div className="placeholder-toolbar">
@@ -47,7 +47,7 @@ export function LabPage() {
           )}
         </section>
 
-        {!isAlgorithmLab && (
+        {!isDeliveryWorld && (
           <aside className="lab-sidebar">
             <div className="info-card">
               <span className="kicker">KONU BAŞLIKLARI</span>
@@ -61,7 +61,7 @@ export function LabPage() {
         )}
       </div>
 
-      {!isAlgorithmLab && (
+      {!isDeliveryWorld && (
         <section className="module-blueprint">
           <div className="section-heading">
             <span className="kicker">BU MODÜLÜ NASIL GELİŞTİRECEĞİZ?</span>
