@@ -24,8 +24,8 @@ export const areas: AreaDefinition[] = [
 export const labs: LabDefinition[] = [
   {
     id: 'algoritma', areaId: 'bilisim', title: 'Algoritma Laboratuvarı', shortTitle: 'Algoritma', icon: '🧩',
-    description: 'Sıfırdan başla; görevleri çözerek adım adım düşünmeyi, sıralamayı ve çözüm kurmayı keşfet.', grade: '9. sınıf seviyesi', status: 'foundation', path: '/bilisim/algoritma',
-    topics: ['Problem çözme', 'Adımlar ve sıra', 'Açık komutlar', 'Akış mantığı'],
+    description: 'Bir teslimat şehri kur: robotunun adımlarını tasarla, yeni durumlara çözüm bul ve sistemi çalıştırarak dene.', grade: '9. sınıf seviyesi', status: 'foundation', path: '/bilisim/algoritma',
+    topics: ['Problem çözme', 'Karar verme', 'Tekrarlar', 'Beklenmedik durumlar'],
     outcomes: ['Bir işi adımlara ayırma', 'Adımlar arasındaki sırayı kurma', 'Eksik ve belirsiz adımları fark etme'],
   },
   {
