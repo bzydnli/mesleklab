@@ -69,7 +69,7 @@ const levels: Level[] = [
     goal: 'Kapalı yola ve düşük pile rağmen teslim et.',
     story: 'Ana cadde kapandı ve robotun pili az. Ona bu durumda nasıl davranacağını öğret.',
     packages: [{ id: '301', address: 'Mavi Ev', at: { x: 7, y: 2 }, readyAt: 0 }],
-    battery: 12, roadClosed: true,
+    battery: 6, roadClosed: true,
   },
   {
     name: 'Gerçek vardiya', short: 'Her şey değişebilir', icon: '🌆',
