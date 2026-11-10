@@ -6,15 +6,15 @@ export function HomePage() {
     <>
       <section className="hero page-width">
         <div className="hero-copy">
-          <span className="kicker">MESLEKİ EĞİTİM · İNTERAKTİF PLAYGROUND</span>
+          <span className="kicker">MESLEKİ EĞİTİM · ETKİLEŞİMLİ PLAYGROUND</span>
           <h1>Okumak yerine <span>deneyerek</span> öğren.</h1>
           <p>
-            MeslekLab; bilişim ve elektrik-elektronik konularını küçük deneylere,
+            MeslekLab bilişim ve elektrik-elektronik konularını küçük deneylere,
             simülasyonlara ve öğrenci görevlerine dönüştüren bir sanal laboratuvar.
           </p>
           <div className="hero-actions">
             <a className="button primary" href="#alanlar">Alanları keşfet</a>
-            <span className="microcopy">2 alan · 12 laboratuvar iskeleti</span>
+            <span className="microcopy">2 alan · 12 laboratuvar</span>
           </div>
         </div>
         <div className="hero-visual" aria-hidden="true">
@@ -31,7 +31,7 @@ export function HomePage() {
         <div className="section-heading">
           <span className="kicker">ALANINI SEÇ</span>
           <h2>Ne öğrenmek istiyorsun?</h2>
-          <p>Her alan kendi laboratuvarlarına ayrılır. Laboratuvarları tek tek geliştirip büyüteceğiz.</p>
+          <p>Her alan kendi laboratuvarlarına ayrılır.</p>
         </div>
 
         <div className="area-grid">
