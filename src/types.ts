@@ -1,6 +1,6 @@
 export type AreaId = 'bilisim' | 'elektrik-elektronik'
 
-export type LabStatus = 'foundation' | 'planned' | 'ready'
+export type LabStatus = 'planned' | 'ready'
 
 export interface LabDefinition {
   id: string
