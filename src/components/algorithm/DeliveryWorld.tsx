@@ -425,41 +425,6 @@ export function DeliveryWorld() {
       </nav>
 
       <div className="dw-main">
-        <section className="dw-simulation">
-          <div className="dw-scene-heading">
-            <div><span className="dw-stage-label">SAHNE {stage + 1} / {levels.length}</span>
-              <h3>{level.goal}</h3><p>{level.story}</p>
-            </div>
-            <span className="dw-destination-badge">{level.packages.length} PAKET</span>
-          </div>
-          <WorldMap level={level} frame={frame}/>
-          <div className="dw-dashboard">
-            <div><span>TESLİMAT</span><strong>{deliveryCount} <small>/ {level.packages.length}</small></strong></div>
-            <div><span>ROBOT PİLİ</span><strong>{frame.energy} <small>/ 36</small></strong><div className="dw-battery"><i style={{width: String(frame.energy / 36 * 100) + '%'}}/></div></div>
-            <div><span>GEÇEN ADIM</span><strong>{frame.clock}</strong></div>
-            <div><span>TAŞIDIĞI</span><strong>{frame.carrying ? '#' + frame.carrying : '—'}</strong></div>
-          </div>
-          <div className={'dw-robot-message ' + frame.tone}>
-            <span className="dw-message-avatar">🤖</span>
-            <div><small>ROBOTTAN HABER VAR</small><strong>{frame.message}</strong></div>
-            {playing && <span className="dw-live-tag">● CANLI</span>}
-          </div>
-          <div className="dw-scene-controls">
-            <button type="button" className="dw-play" onClick={start}>▶ {frames.length ? 'Yeniden çalıştır' : 'Çalıştır'}</button>
-            <button type="button" className="dw-neutral" onClick={() => setPlaying((value) => !value)}
-              disabled={frames.length < 2 || cursor >= frames.length - 1}>{playing ? '⏸ Duraklat' : '▶ Devam et'}</button>
-            <button type="button" className="dw-neutral" onClick={stepForward}>⏭ Tek adım</button>
-            <button type="button" className="dw-reset" onClick={resetRun}>↺ Başa sar</button>
-          </div>
-          {finished && result &&
-            <div className={'dw-result ' + (result.success ? 'good' : 'bad')}>
-              <div className="dw-result-icon">{result.success ? '🏆' : '🛠️'}</div>
-              <div><strong>{result.conclusion}</strong><p>{result.hint}</p></div>
-              {result.success && stage < levels.length - 1 &&
-                <button type="button" onClick={() => changeLevel(stage + 1)}>Yeni sahne →</button>}
-            </div>}
-        </section>
-
         <aside className="dw-control-room">
           <div className="dw-panel-heading">
             <span>🧩 ROBOTUN TALİMATLARI</span>
@@ -487,8 +452,46 @@ export function DeliveryWorld() {
               focused={frame.focus === config.id && playing}/>)}
           </div> :
             <div className="dw-locked-rule">🔒 İlk önce temel teslimat akışını çalıştır. Sonra robotun karşısına yeni sorunlar çıkacak.</div>}
+          <div className="dw-execution-panel">
+            <div className="dw-section-title"><strong>Robotu çalıştır</strong><small>Deneyip sonucu gözlemle</small></div>
+            <div className="dw-scene-controls">
+                        <button type="button" className="dw-play" onClick={start}>▶ {frames.length ? 'Yeniden çalıştır' : 'Çalıştır'}</button>
+                        <button type="button" className="dw-neutral" onClick={() => setPlaying((value) => !value)}
+                          disabled={frames.length < 2 || cursor >= frames.length - 1}>{playing ? '⏸ Duraklat' : '▶ Devam et'}</button>
+                        <button type="button" className="dw-neutral" onClick={stepForward}>⏭ Tek adım</button>
+                        <button type="button" className="dw-reset" onClick={resetRun}>↺ Başa sar</button>
+                      </div>
+            <div className={'dw-robot-message ' + frame.tone}>
+                        <span className="dw-message-avatar">🤖</span>
+                        <div><small>ROBOTTAN HABER VAR</small><strong>{frame.message}</strong></div>
+                        {playing && <span className="dw-live-tag">● CANLI</span>}
+                      </div>
+            {finished && result &&
+                        <div className={'dw-result ' + (result.success ? 'good' : 'bad')}>
+                          <div className="dw-result-icon">{result.success ? '🏆' : '🛠️'}</div>
+                          <div><strong>{result.conclusion}</strong><p>{result.hint}</p></div>
+                          {result.success && stage < levels.length - 1 &&
+                            <button type="button" onClick={() => changeLevel(stage + 1)}>Yeni sahne →</button>}
+                        </div>}
+          </div>
           <button className="dw-reset-all" type="button" onClick={resetChoices}>↻ Bütün talimatları sıfırla</button>
         </aside>
+
+        <section className="dw-simulation">
+          <div className="dw-scene-heading">
+            <div><span className="dw-stage-label">SAHNE {stage + 1} / {levels.length}</span>
+              <h3>{level.goal}</h3><p>{level.story}</p>
+            </div>
+            <span className="dw-destination-badge">{level.packages.length} PAKET</span>
+          </div>
+          <WorldMap level={level} frame={frame}/>
+          <div className="dw-dashboard">
+            <div><span>TESLİMAT</span><strong>{deliveryCount} <small>/ {level.packages.length}</small></strong></div>
+            <div><span>ROBOT PİLİ</span><strong>{frame.energy} <small>/ 36</small></strong><div className="dw-battery"><i style={{width: String(frame.energy / 36 * 100) + '%'}}/></div></div>
+            <div><span>GEÇEN ADIM</span><strong>{frame.clock}</strong></div>
+            <div><span>TAŞIDIĞI</span><strong>{frame.carrying ? '#' + frame.carrying : '—'}</strong></div>
+          </div>
+        </section>
       </div>
       <div className="dw-footer-note"><span>✦</span> Burada kod yazmıyorsun. Ama bir sistemin kararlarını, tekrarlarını ve beklenmedik durumlarda nasıl davranacağını tasarlıyorsun.</div>
     </div>
