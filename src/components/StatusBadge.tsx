@@ -1,7 +1,6 @@
 import type { LabStatus } from '../types'
 
 const labels: Record<LabStatus, string> = {
-  foundation: 'İlk geliştirilecek',
   planned: 'Planlandı',
   ready: 'Hazır',
 }
