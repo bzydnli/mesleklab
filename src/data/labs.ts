@@ -30,9 +30,9 @@ export const labs: LabDefinition[] = [
   },
   {
     id: 'programlama', areaId: 'bilisim', title: 'Programlama Laboratuvarı', shortTitle: 'Programlama', icon: '⌨️',
-    description: 'Değişkenlerden fonksiyonlara kadar kodun çalışma mantığını küçük deneylerle keşfet.', grade: '9–10. sınıf', status: 'planned', path: '/bilisim/programlama',
-    topics: ['Değişkenler', 'Veri türleri', 'Fonksiyonlar', 'Hata ayıklama'],
-    outcomes: ['Temel kod okuma', 'Kod çıktısını tahmin etme', 'Hataları nedenleriyle düzeltme'],
+    description: 'Dijital Ürün Stüdyosu: gerçek JavaScript yazarak kendi bilet uygulamanı adım adım geliştir, çalıştır ve test et.', grade: '9–12. sınıf seviyeleri', status: 'ready', path: '/bilisim/programlama',
+    topics: ['JavaScript', 'Koşullar', 'Döngüler', 'Fonksiyonlar', 'Veri yönetimi'],
+    outcomes: ['Gerçek kod yazarak özellik geliştirme', 'Koşullar ve tekrarlarla veri işleme', 'Kodunu farklı durumlarla test edip düzeltme'],
   },
   {
     id: 'ag', areaId: 'bilisim', title: 'Ağ Laboratuvarı', shortTitle: 'Ağ', icon: '🌐',
