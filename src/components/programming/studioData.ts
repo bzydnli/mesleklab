@@ -15,6 +15,8 @@ export type StudioChapter = {
   takeaway: string
   functionName: string
   starter: string
+  exampleSetup: string
+  exampleCall: string
   hint: string
   tests: TestCase[]
 }
@@ -27,6 +29,8 @@ export const studioChapters: StudioChapter[] = [
     mission: 'Toplam tutarı bilet adediyle birlikte değişecek şekilde düzelt.',
     takeaway: 'Bir fonksiyon bilgiyi alır, üzerinde işlem yapar ve yeni bir sonuç üretir.',
     functionName: 'toplamTutar',
+    exampleSetup: "// ÖRNEK VERİLER — Sayıları değiştirip tekrar çalıştırabilirsin.\nlet ornekAdet = 2;\nconst ornekFiyat = 150;",
+    exampleCall: "// FONKSİYONU ÇAĞIR — Örnek değerleri parametrelere gönder.\nconst ornekSonuc = toplamTutar(ornekAdet, ornekFiyat);",
     starter: ['function toplamTutar(adet, fiyat) {', '  // Uygulama şu an tek biletin fiyatını gösteriyor.', '  return fiyat;', '}'].join('\n'),
     hint: 'Fonksiyonun sonucunu `return` ile gönderirsin. Tek bilet fiyatını değil, bilet adedi ile fiyatın çarpımını döndür: `return adet * fiyat;`. JavaScript’te çarpma işareti `*` kullanılır.',
     tests: [
@@ -43,6 +47,8 @@ export const studioChapters: StudioChapter[] = [
     mission: 'Adet geçersizse, koltuk yetmiyorsa ve yer varsa üç farklı sonucu üret.',
     takeaway: 'Kod, karşılaştığı duruma göre farklı yollar izleyebilir.',
     functionName: 'kontrolEt',
+    exampleSetup: "// ÖRNEK VERİLER — İstenen bilet ve kalan koltuk.\nlet ornekAdet = 4;\nlet ornekKalan = 3;",
+    exampleCall: "// FONKSİYONU ÇAĞIR — Farklı değerlerle farklı yanıtları dene.\nconst ornekSonuc = kontrolEt(ornekAdet, ornekKalan);",
     starter: ['function kontrolEt(adet, kalan) {', '  if (adet <= kalan) {', '    return "Onaylandı";', '  }', '', '  return "Onaylandı";', '}'].join('\n'),
     hint: 'Fonksiyon şu üç yanıtı `return` komutuyla ve tırnak içindeki ifadeleri birebir kullanarak üretmeli: ① `adet <= 0` ise `return "Geçersiz adet";` ② `adet > kalan` ise `return "Yetersiz koltuk";` ③ diğer durumlarda `return "Onaylandı";`. Kontrolleri bu sırayla yap; büyük/küçük harf de önemlidir.',
     tests: [
@@ -60,6 +66,8 @@ export const studioChapters: StudioChapter[] = [
     mission: 'Sağdaki mağazadan en az iki etkinlik ekle, adetlerini ayrı ayrı değiştir ve sepet toplamını hesaplayan kodu düzelt.',
     takeaway: 'Benzer işleri tek tek yazmak yerine bir koleksiyon üzerinde tekrarlayabilirsin.',
     functionName: 'sepetToplami',
+    exampleSetup: "// ÖRNEK VERİLER — Dizideki her nesne bir etkinliğin siparişidir.\nconst ornekSiparisler = [\n  { fiyat: 150, adet: 2 },\n  { fiyat: 120, adet: 3 }\n];",
+    exampleCall: "// FONKSİYONU ÇAĞIR — Sepet dizisini gönder.\nconst ornekSonuc = sepetToplami(ornekSiparisler);",
     starter: ['function sepetToplami(siparisler) {', '  let toplam = 0;', '', '  for (const siparis of siparisler) {', '    toplam += siparis.fiyat;', '  }', '', '  return toplam;', '}'].join('\n'),
     hint: 'Döngüde her siparişin `fiyat` ve `adet` bilgilerini birlikte kullan. `toplam += siparis.fiyat * siparis.adet;` ile satır tutarını ekle. Döngü bittikten sonra `return toplam;` ile sepetin toplamını gönder.',
     tests: [
@@ -76,6 +84,8 @@ export const studioChapters: StudioChapter[] = [
     mission: 'Öğrenci seçiliyse tutarı %20 düşür; değilse olduğu gibi bırak.',
     takeaway: 'Aynı fonksiyon, gelen bilgilere göre farklı sonuçlar üretebilir.',
     functionName: 'odemeTutari',
+    exampleSetup: "// ÖRNEK VERİLER — true öğrenci, false normal müşteri.\nlet ornekTutar = 300;\nlet ornekOgrenciMi = true;",
+    exampleCall: "// FONKSİYONU ÇAĞIR — Tutarı ve öğrenci bilgisini gönder.\nconst ornekSonuc = odemeTutari(ornekTutar, ornekOgrenciMi);",
     starter: ['function odemeTutari(tutar, ogrenciMi) {', '  if (ogrenciMi) {', '    // İndirim henüz devrede değil.', '    return tutar;', '  }', '', '  return tutar;', '}'].join('\n'),
     hint: '`ogrenciMi` doğru (`true`) olduğunda %20 indirim için `return tutar * 0.8;` kullan. Öğrenci değilse (`false`) fiyat değişmemeli: `return tutar;`. Her iki durumda da sonuç sayı olmalı, metin değil.',
     tests: [
@@ -92,7 +102,9 @@ export const studioChapters: StudioChapter[] = [
     mission: 'Satış olursa kalan koltuğu azalt ve tutarı hesapla. Geçersiz istekte satış oluşturma.',
     takeaway: 'Gerçek yazılımlar yalnızca değer hesaplamaz; bir sistemin durumunu güvenilir biçimde günceller.',
     functionName: 'biletSat',
-    starter: ['function biletSat(etkinlik, adet) {', '  if (adet > etkinlik.kalan) {', '    return { basarili: false, kalan: etkinlik.kalan, tutar: 0 };', '  }', '', '  return {', '    basarili: true,', '    kalan: etkinlik.kalan,', '    tutar: etkinlik.fiyat * adet', '  };', '}'].join('\n'),
+    exampleSetup: "// ÖRNEK VERİLER — Etkinlik nesnesi ve alınacak bilet sayısı.\nconst ornekEtkinlik = { kalan: 5, fiyat: 150 };\nlet ornekAdet = 2;",
+    exampleCall: "// FONKSİYONU ÇAĞIR — Nesneyi ve adedi parametrelere gönder.\nconst ornekSonuc = biletSat(ornekEtkinlik, ornekAdet);",
+    starter: ['function biletSat(etkinlik, adet) {', '  // Satış yapılamıyorsa fonksiyon bu return ile biter.', '  if (adet > etkinlik.kalan) {', '    return { basarili: false, kalan: etkinlik.kalan, tutar: 0 };', '  }', '', '  // Geçerli satış: kalan koltuğu azalt, toplam tutarı hesapla.', '  // Burada hâlâ düzeltmen gereken bir hata var.', '  return {', '    basarili: true,', '    kalan: etkinlik.kalan,', '    tutar: etkinlik.fiyat * adet', '  };', '}'].join('\n'),
     hint: 'Önce `adet <= 0` veya `adet > etkinlik.kalan` durumlarını kontrol et. Böyle bir istekte `return { basarili: false, kalan: etkinlik.kalan, tutar: 0 };` kullan. Geçerli satışta `return { basarili: true, kalan: etkinlik.kalan - adet, tutar: etkinlik.fiyat * adet };` sonucunu üret. Özellik adlarını (`basarili`, `kalan`, `tutar`) aynen yaz.',
     tests: [
       { label: '2 bilet sat', args: [{ kalan: 8, fiyat: 150 }, 2], expected: { basarili: true, kalan: 6, tutar: 300 }, hint: 'Başarılı sonuçtaki `kalan` alanını `etkinlik.kalan - adet` olarak hesapla.' },
@@ -102,3 +114,10 @@ export const studioChapters: StudioChapter[] = [
     ],
   },
 ]
+
+// Öğrenci kodu tek başına okunabilsin: örnek veriler → fonksiyon → çağrı.
+// Daha önce kaydedilmiş fonksiyon kodunu silmeden örnek bölümünü ekleriz.
+export function completeStudioSource(chapter: StudioChapter, code: string): string {
+  if (code.includes('// ÖRNEK VERİLER')) return code
+  return [chapter.exampleSetup, '', code, '', chapter.exampleCall].join('\n')
+}
