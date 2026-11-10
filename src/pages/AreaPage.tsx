@@ -30,7 +30,7 @@ export function AreaPage() {
             <span className="kicker">LABORATUVARLAR</span>
             <h2>Bir modül seç.</h2>
           </div>
-          <p>Şimdilik altyapı hazır. Modülleri bundan sonra tek tek gerçek playgroundlara dönüştüreceğiz.</p>
+          <p>Hazırlanan modülleri dene.</p>
         </div>
         <div className="labs-grid">
           {areaLabs.map((lab) => <LabCard lab={lab} key={lab.id} />)}
