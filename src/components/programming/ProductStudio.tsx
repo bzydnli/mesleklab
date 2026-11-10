@@ -54,6 +54,14 @@ function stableValue(input: unknown): string {
   return JSON.stringify(input) ?? String(input)
 }
 
+function formatHint(text: string) {
+  return text.split(/(`[^`]+`)/g).map((part, index) =>
+    part.startsWith('`') && part.endsWith('`')
+      ? <code key={index} className="ps-inline-code">{part.slice(1, -1)}</code>
+      : part,
+  )
+}
+
 function visibleValue(input: unknown): string {
   if (input === undefined) return 'Sonuç üretilmedi'
   if (typeof input === 'string') return input
@@ -366,7 +374,7 @@ export function ProductStudio() {
             <span>💡 {showHint ? 'İpucunu gizle' : 'Takıldın mı? İpucu al'}</span>
             <span>{showHint ? '−' : '+'}</span>
           </button>
-          {showHint && <p>{chapter.hint}</p>}
+          {showHint && <p>{formatHint(chapter.hint)}</p>}
         </div>
 
         <div className="ps-tests-panel">
@@ -383,7 +391,7 @@ export function ProductStudio() {
                 <div><strong>{test.label}</strong>
                   {check && <small>{check.passed ? 'Doğru sonuç: ' + check.actual :
                     'Beklenen: ' + check.expected + ' · Gelen: ' + check.actual}</small>}
-                  {check && !check.passed && <em>{check.hint}</em>}
+                  {check && !check.passed && <em>{formatHint(check.hint)}</em>}
                 </div>
               </div>
             })}
