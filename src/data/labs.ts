@@ -54,7 +54,7 @@ export const labs: LabDefinition[] = [
   },
   {
     id: 'temel-devreler', areaId: 'elektrik-elektronik', title: 'Temel Devreler Laboratuvarı', shortTitle: 'Temel Devreler', icon: '🔋',
-    description: 'Gerilim, akım ve direnç ilişkisini sanal devre kurarak ve değerleri değiştirerek gözlemle.', grade: '9. sınıf', status: 'foundation', path: '/elektrik-elektronik/temel-devreler',
+    description: 'Gerilim, akım ve direnç ilişkisini sanal devre kurarak ve değerleri değiştirerek gözlemle.', grade: '9. sınıf', status: 'planned', path: '/elektrik-elektronik/temel-devreler',
     topics: ['Ohm Kanunu', 'Seri devre', 'Paralel devre', 'Kirchhoff'],
     outcomes: ['Devre kurma', 'V-I-R ilişkisini yorumlama', 'Seri/paralel farkını gözlemleme'],
   },
