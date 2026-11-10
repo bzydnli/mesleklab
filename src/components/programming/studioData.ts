@@ -104,7 +104,7 @@ export const studioChapters: StudioChapter[] = [
     functionName: 'biletSat',
     exampleSetup: "// ÖRNEK VERİLER — Etkinlik nesnesi ve alınacak bilet sayısı.\nconst ornekEtkinlik = { kalan: 5, fiyat: 150 };\nlet ornekAdet = 2;",
     exampleCall: "// FONKSİYONU ÇAĞIR — Nesneyi ve adedi parametrelere gönder.\nconst ornekSonuc = biletSat(ornekEtkinlik, ornekAdet);",
-    starter: ['function biletSat(etkinlik, adet) {', '  // Satış yapılamıyorsa fonksiyon bu return ile biter.', '  if (adet > etkinlik.kalan) {', '    return { basarili: false, kalan: etkinlik.kalan, tutar: 0 };', '  }', '', '  // Geçerli satış: kalan koltuğu azalt, toplam tutarı hesapla.', '  // Burada hâlâ düzeltmen gereken bir hata var.', '  return {', '    basarili: true,', '    kalan: etkinlik.kalan,', '    tutar: etkinlik.fiyat * adet', '  };', '}'].join('\n'),
+    starter: ['function biletSat(etkinlik, adet) {', '  // Satış yapılamıyorsa fonksiyon bu return ile biter.', '  if (adet > etkinlik.kalan) {', '    return { basarili: false, kalan: etkinlik.kalan, tutar: 0 };', '  }', '', '  // Geçerli satış', '  // Kalan koltuğu azaltıp toplam tutarı hesaplamalıyız.', '  // Kalan koltuk hesabında düzeltilmesi gereken bir hata var.', '  return {', '    basarili: true,', '    kalan: etkinlik.kalan,', '    tutar: etkinlik.fiyat * adet', '  };', '}'].join('\n'),
     hint: 'Önce `adet <= 0` veya `adet > etkinlik.kalan` durumlarını kontrol et. Böyle bir istekte `return { basarili: false, kalan: etkinlik.kalan, tutar: 0 };` kullan. Geçerli satışta `return { basarili: true, kalan: etkinlik.kalan - adet, tutar: etkinlik.fiyat * adet };` sonucunu üret. Özellik adlarını (`basarili`, `kalan`, `tutar`) aynen yaz.',
     tests: [
       { label: '2 bilet sat', args: [{ kalan: 8, fiyat: 150 }, 2], expected: { basarili: true, kalan: 6, tutar: 300 }, hint: 'Başarılı sonuçtaki `kalan` alanını `etkinlik.kalan - adet` olarak hesapla.' },
@@ -119,5 +119,5 @@ export const studioChapters: StudioChapter[] = [
 // Daha önce kaydedilmiş fonksiyon kodunu silmeden örnek bölümünü ekleriz.
 export function completeStudioSource(chapter: StudioChapter, code: string): string {
   if (code.includes('// ÖRNEK VERİLER')) return code
-  return [chapter.exampleSetup, '', code, '', chapter.exampleCall].join('\n')
+  return [chapter.exampleSetup, '', '// FONKSİYON — Parantezdeki isimler (parametreler) çağrıda gönderilen değerleri alır.', code, '', chapter.exampleCall].join('\n')
 }
