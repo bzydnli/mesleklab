@@ -17,10 +17,28 @@ type StudioCheck = {
   actual: string
   hint: string
 }
-type StudioFeedback = { checks: StudioCheck[]; preview: Execution }
+type StudioFeedback = { checks: StudioCheck[] }
 
 const CODE_KEY = 'mesleklab-studio-codes-v1'
 const PROGRESS_KEY = 'mesleklab-studio-completed-v1'
+
+type TicketId = 'nova' | 'tasarim' | 'teknoloji'
+type Basket = Record<TicketId, number>
+
+const ticketProducts: Array<{ id: TicketId; name: string; price: number; icon: string }> = [
+  { id: 'nova', name: 'NOVA Live', price: 150, icon: '🎵' },
+  { id: 'tasarim', name: 'Tasarım Günü', price: 120, icon: '🎨' },
+  { id: 'teknoloji', name: 'Teknoloji Festivali', price: 90, icon: '🚀' },
+]
+
+const initialBasket: Basket = { nova: 0, tasarim: 0, teknoloji: 0 }
+const productActions: Record<string, string> = {
+  fiyat: 'Tutarı hesapla',
+  koltuk: 'Koltukları kontrol et',
+  sepet: 'Sepeti hesapla',
+  indirim: 'İndirimi uygula',
+  rezervasyon: 'Rezervasyonu onayla',
+}
 
 function loadCodes(): Record<string, string> {
   const initial = Object.fromEntries(studioChapters.map((chapter) => [chapter.id, chapter.starter]))
@@ -69,11 +87,12 @@ function visibleValue(input: unknown): string {
   try { return JSON.stringify(input, null, 2) } catch { return String(input) }
 }
 
-function exampleArgs(id: string, quantity: number, student: boolean, extra: boolean): unknown[] {
+function exampleArgs(id: string, quantity: number, student: boolean, basket: Basket): unknown[] {
   switch (id) {
     case 'fiyat': return [quantity, 150]
     case 'koltuk': return [quantity, 3]
-    case 'sepet': return [[{ fiyat: 150, adet: quantity }, ...(extra ? [{ fiyat: 120, adet: 1 }] : [])]]
+    case 'sepet': return [ticketProducts.filter((item) => basket[item.id] > 0)
+      .map((item) => ({ fiyat: item.price, adet: basket[item.id] }))]
     case 'indirim': return [quantity * 150, student]
     case 'rezervasyon': return [{ kalan: 5, fiyat: 150 }, quantity]
     default: return []
@@ -96,16 +115,21 @@ function ChapterNav({ active, completed, onSelect }: {
   </nav>
 }
 
-function StudioPreview({ chapter, quantity, setQuantity, student, setStudent, extra, setExtra, preview, tested }: {
+function StudioPreview({ chapter, quantity, setQuantity, student, setStudent, basket, onAddToBasket,
+  onChangeBasketQuantity, preview, previewHasRun, onPreview, busy, runnerReady }: {
   chapter: StudioChapter
   quantity: number
   setQuantity: (value: number) => void
   student: boolean
   setStudent: (value: boolean) => void
-  extra: boolean
-  setExtra: (value: boolean) => void
+  basket: Basket
+  onAddToBasket: (id: TicketId) => void
+  onChangeBasketQuantity: (id: TicketId, quantity: number) => void
   preview: Execution | null
-  tested: boolean
+  previewHasRun: boolean
+  onPreview: () => void
+  busy: boolean
+  runnerReady: boolean
 }) {
   const result = preview?.ok ? preview.value : undefined
   const status = chapter.id === 'koltuk' ? result :
@@ -115,11 +139,13 @@ function StudioPreview({ chapter, quantity, setQuantity, student, setStudent, ex
   const numerical = typeof result === 'number' && Number.isFinite(result) ? result : null
   const reservation = chapter.id === 'rezervasyon' && result && typeof result === 'object'
     ? result as Record<string, unknown> : null
+  const basketCount = ticketProducts.reduce((total, item) => total + basket[item.id], 0)
+  const selectedProducts = ticketProducts.filter((item) => basket[item.id] > 0)
 
   return <section className="ps-preview-panel">
     <header className="ps-preview-heading">
       <div><span className="ps-live-dot"/><span>CANLI UYGULAMA</span></div>
-      <small>Sağdaki ekran, soldaki kodun sonucunu gösterir</small>
+      <small>Uygulamadaki butona basınca yazdığın kod çalışır</small>
     </header>
 
     <div className="ps-app">
@@ -145,23 +171,46 @@ function StudioPreview({ chapter, quantity, setQuantity, student, setStudent, ex
           <span className="ps-ticket-price">150 ₺ <small>/ bilet</small></span></div>
         <div className="ps-product-tags"><span>◉ İstanbul</span><span>▣ Konser</span><span>✦ Kontenjanlı</span></div>
 
-        <div className="ps-app-field">
+        {chapter.id !== 'sepet' && <div className="ps-app-field">
           <div><strong>Kaç bilet alınacak?</strong><small>Farklı değerleri dene</small></div>
           <div className="ps-counter"><button type="button" onClick={() => setQuantity(Math.max(0, quantity - 1))}
             aria-label="Bilet sayısını azalt">−</button><strong>{quantity}</strong>
             <button type="button" onClick={() => setQuantity(Math.min(12, quantity + 1))}
               aria-label="Bilet sayısını artır">+</button></div>
-        </div>
+        </div>}
 
         {chapter.id === 'koltuk' &&
           <div className="ps-context-strip"><span>💺</span><strong>Şu an 3 koltuk kaldı</strong><small>Talebini değiştir, tekrar çalıştır</small></div>}
 
         {chapter.id === 'sepet' && <>
-          <div className="ps-cart-row"><span className="ps-cart-cover">🎵</span><div><strong>NOVA Live</strong><small>{quantity} × 150 ₺</small></div><b>{quantity * 150} ₺</b></div>
-          {extra && <div className="ps-cart-row"><span className="ps-cart-cover second">🎨</span><div><strong>Tasarım Günü</strong><small>1 × 120 ₺</small></div><b>120 ₺</b></div>}
-          <button type="button" className="ps-secondary-product-action" onClick={() => setExtra(!extra)}>
-            {extra ? '− İkinci etkinliği çıkar' : '+ Sepete farklı bir etkinlik ekle'}
-          </button>
+          <div className="ps-shop-heading"><strong>Etkinlikler</strong><small>Seç, sepete ekle, adetleri düzenle.</small></div>
+          <div className="ps-shop-catalog">
+            {ticketProducts.map((item) => <div className="ps-shop-product" key={item.id}>
+              <span className="ps-cart-cover">{item.icon}</span>
+              <div className="ps-shop-product-copy"><strong>{item.name}</strong><small>{item.price} ₺ / bilet</small></div>
+              <button type="button" onClick={() => onAddToBasket(item.id)} aria-label={item.name + ' etkinliğini sepete ekle'}>+ Ekle</button>
+            </div>)}
+          </div>
+          <div className="ps-shop-heading basket"><strong>🛒 Sepetim</strong><small>{basketCount} bilet · {selectedProducts.length} etkinlik</small></div>
+          <div className="ps-cart-items">
+            {selectedProducts.length === 0
+              ? <div className="ps-cart-empty">Sepetin boş. Yukarıdan bir etkinliği sepete ekle.</div>
+              : selectedProducts.map((item) => <div className="ps-cart-row" key={item.id}>
+                <span className="ps-cart-cover">{item.icon}</span>
+                <div className="ps-cart-line-title"><strong>{item.name}</strong>
+                  <small>{item.price} ₺ × {basket[item.id]} bilet</small></div>
+                <div className="ps-cart-qty">
+                  <button type="button" aria-label={item.name + ' adedini azalt'}
+                    onClick={() => onChangeBasketQuantity(item.id, Math.max(0, basket[item.id] - 1))}>−</button>
+                  <span aria-label={item.name + ' bilet adedi'}>{basket[item.id]}</span>
+                  <button type="button" aria-label={item.name + ' adedini artır'}
+                    onClick={() => onChangeBasketQuantity(item.id, Math.min(12, basket[item.id] + 1))}>+</button>
+                </div>
+                <strong className="ps-cart-price">{(item.price * basket[item.id]).toLocaleString('tr-TR')} ₺</strong>
+                <button type="button" className="ps-cart-remove" aria-label={item.name + ' sepetten çıkar'}
+                  onClick={() => onChangeBasketQuantity(item.id, 0)}>×</button>
+              </div>)}
+          </div>
         </>}
 
         {chapter.id === 'indirim' && <label className="ps-student-toggle"><input type="checkbox" checked={student}
@@ -173,10 +222,18 @@ function StudioPreview({ chapter, quantity, setQuantity, student, setStudent, ex
               <span key={i} className={i < 3 || (reservation && typeof reservation.kalan === 'number' && i >= 3 + Math.max(0, reservation.kalan)) ? 'occupied' : ''}>▢</span>)}</div>
           </div>}
 
+        <div className="ps-product-action">
+          <button type="button" className="ps-app-submit" onClick={onPreview}
+            disabled={!runnerReady || busy || (chapter.id === 'sepet' && basketCount === 0)}>
+            {busy ? '⏳ İşleniyor...' : productActions[chapter.id] + ' →'}
+          </button>
+          {chapter.id === 'sepet' && basketCount === 0 &&
+            <small>Hesaplamak için önce sepete bilet ekle.</small>}
+        </div>
         <div className="ps-live-output" aria-live="polite">
           <div className="ps-output-label"><span>✦ UYGULAMANIN ÜRETTİĞİ SONUÇ</span>
-            <small>{tested ? 'Kod çalıştırıldı' : 'Henüz çalıştırılmadı'}</small></div>
-          {!tested ? <div className="ps-output-empty"><span>▶</span> Kodu çalıştırınca sonuç burada görünecek.</div> :
+            <small>{previewHasRun ? 'İşlem tamamlandı' : 'İşlem bekleniyor'}</small></div>
+          {!previewHasRun ? <div className="ps-output-empty"><span>▶</span> Yukarıdaki işlem düğmesine basınca kodunun sonucu burada görünecek.</div> :
             !preview?.ok ? <div className="ps-output-error">⚠ {preview?.error || 'Kod sonuç üretemedi.'}</div> :
               status ? <div className={'ps-output-status ' + (isPositive ? 'approved' : 'rejected')}>
                 <span>{isPositive ? '✓' : '!'}</span><strong>{String(status)}</strong>
@@ -202,7 +259,9 @@ export function ProductStudio() {
   const [completed, setCompleted] = useState<Record<string, boolean>>(loadProgress)
   const [quantity, setQuantity] = useState(2)
   const [student, setStudent] = useState(true)
-  const [extra, setExtra] = useState(true)
+  const [basket, setBasket] = useState<Basket>(initialBasket)
+  const [preview, setPreview] = useState<Execution | null>(null)
+  const [previewHasRun, setPreviewHasRun] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [runnerReady, setRunnerReady] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -211,6 +270,7 @@ export function ProductStudio() {
   const frameRef = useRef<HTMLIFrameElement | null>(null)
   const codeRef = useRef<HTMLTextAreaElement | null>(null)
   const requestRef = useRef(0)
+  const modeRef = useRef<'tests' | 'preview'>('tests')
 
   const chapter = studioChapters[active]
   const code = codes[chapter.id] ?? chapter.starter
@@ -236,6 +296,13 @@ export function ProductStudio() {
 
       setBusy(false)
       const payload = data.payload
+      if (modeRef.current === 'preview') {
+        setPreviewHasRun(true)
+        setPreview(!payload || payload.kind === 'error'
+          ? { ok: false, error: payload?.error || 'İşlem tamamlanamadı.' }
+          : payload.preview ?? { ok: false, error: 'Uygulama bir sonuç üretemedi.' })
+        return
+      }
       if (!payload || payload.kind === 'error' || !Array.isArray(payload.outputs)) {
         setRunError(payload?.error || 'Kod çalıştırılamadı. Tekrar dene.')
         setFeedback(null)
@@ -252,7 +319,7 @@ export function ProductStudio() {
         }
       })
       setRunError('')
-      setFeedback({ checks, preview: payload.preview ?? { ok: false, error: 'Önizleme üretilemedi.' } })
+      setFeedback({ checks })
       if (checks.every((check) => check.passed)) {
         setCompleted((prev) => ({ ...prev, [chapter.id]: true }))
       }
@@ -261,9 +328,15 @@ export function ProductStudio() {
     return () => window.removeEventListener('message', listen)
   }, [chapter])
 
-  function invalidate() {
+  function invalidatePreview() {
     requestRef.current++
     setBusy(false)
+    setPreview(null)
+    setPreviewHasRun(false)
+  }
+
+  function invalidate() {
+    invalidatePreview()
     setFeedback(null)
     setRunError('')
   }
@@ -280,14 +353,27 @@ export function ProductStudio() {
     setCodes((prev) => ({ ...prev, [chapter.id]: next.slice(0, 18000) }))
   }
 
-  function runCode() {
+  function runCode(mode: 'tests' | 'preview') {
     if (!runnerReady || !frameRef.current?.contentWindow) {
-      setRunError('Kod çalışma alanı henüz hazır değil. Sayfayı yenileyip tekrar dene.')
+      if (mode === 'tests') setRunError('Kod çalışma alanı henüz hazır değil. Sayfayı yenileyip tekrar dene.')
+      else {
+        setPreview({ ok: false, error: 'Kod çalışma alanı henüz hazır değil. Sayfayı yenileyip tekrar dene.' })
+        setPreviewHasRun(true)
+      }
       return
     }
+    if (mode === 'preview' && chapter.id === 'sepet' &&
+      ticketProducts.every((item) => basket[item.id] === 0)) return
+
+    modeRef.current = mode
     const id = ++requestRef.current
-    setFeedback(null)
-    setRunError('')
+    if (mode === 'tests') {
+      setFeedback(null)
+      setRunError('')
+    } else {
+      setPreview(null)
+      setPreviewHasRun(false)
+    }
     setBusy(true)
     frameRef.current.contentWindow.postMessage({
       channel: 'mesleklab-studio',
@@ -296,10 +382,20 @@ export function ProductStudio() {
       payload: {
         code,
         functionName: chapter.functionName,
-        tests: chapter.tests.map((test) => ({ args: test.args })),
-        previewArgs: exampleArgs(chapter.id, quantity, student, extra),
+        tests: mode === 'tests' ? chapter.tests.map((test) => ({ args: test.args })) : [],
+        previewArgs: exampleArgs(chapter.id, quantity, student, basket),
       },
     }, '*')
+  }
+
+  function addToBasket(id: TicketId) {
+    invalidatePreview()
+    setBasket((current) => ({ ...current, [id]: Math.min(12, current[id] + 1) }))
+  }
+
+  function changeBasketQuantity(id: TicketId, quantity: number) {
+    invalidatePreview()
+    setBasket((current) => ({ ...current, [id]: Math.max(0, Math.min(12, quantity)) }))
   }
 
   function resetCode() {
@@ -363,7 +459,7 @@ export function ProductStudio() {
         </div>
 
         <div className="ps-editor-actions">
-          <button type="button" className="ps-run-button" onClick={runCode} disabled={busy || !runnerReady}>
+          <button type="button" className="ps-run-button" onClick={() => runCode('tests')} disabled={busy || !runnerReady}>
             {busy ? '⏳ Çalıştırılıyor...' : '▶ Kodu çalıştır ve test et'}
           </button>
           <button type="button" className="ps-reset-button" onClick={resetCode}>↻ Başlangıç kodu</button>
@@ -404,11 +500,12 @@ export function ProductStudio() {
       </section>
 
       <StudioPreview chapter={chapter} quantity={quantity}
-        setQuantity={(value) => { invalidate(); setQuantity(value) }}
-        student={student} setStudent={(value) => { invalidate(); setStudent(value) }}
-        extra={extra} setExtra={(value) => { invalidate(); setExtra(value) }}
-        preview={feedback?.preview ?? null} tested={!!feedback}/>
+        setQuantity={(value) => { invalidatePreview(); setQuantity(value) }}
+        student={student} setStudent={(value) => { invalidatePreview(); setStudent(value) }}
+        basket={basket} onAddToBasket={addToBasket} onChangeBasketQuantity={changeBasketQuantity}
+        preview={preview} previewHasRun={previewHasRun} onPreview={() => runCode('preview')}
+        busy={busy} runnerReady={runnerReady}/>
     </div>
-    <div className="ps-studio-bottom"><span>✦</span> <strong>Deneyerek öğren.</strong> Başlangıç kodunda özellikle düzeltilmesi gereken bir sorun var. Kodu değiştirdiğinde sonucu ürün ekranında gör ve bütün testleri geçir.</div>
+    <div className="ps-studio-bottom"><span>✦</span> <strong>Deneyerek öğren.</strong> Başlangıç kodunda özellikle düzeltilmesi gereken bir sorun var. Kodu düzenle, uygulamadaki işlem düğmesine basarak sonucu gör; ardından test laboratuvarında farklı durumları dene.</div>
   </div>
 }
