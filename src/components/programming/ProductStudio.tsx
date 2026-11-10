@@ -452,7 +452,9 @@ export function ProductStudio() {
             <div className="ps-line-numbers" aria-hidden="true">
               {code.split('\n').map((_, index) => <span key={index}>{index + 1}</span>)}
             </div>
-            <textarea ref={codeRef} value={code} onChange={(event) => updateCode(event.target.value)}
+            <textarea ref={codeRef} value={code}
+              style={{ height: Math.max(280, Math.min(750, code.split('\n').length * 23 + 30)) }}
+              onChange={(event) => updateCode(event.target.value)}
               onKeyDown={onEditorKeyDown} spellCheck={false} autoCapitalize="off" autoCorrect="off"
               aria-label={chapter.title + ' JavaScript kod editörü'}/>
           </div>
