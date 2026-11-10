@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { studioChapters, type StudioChapter } from './studioData'
+import { completeStudioSource, studioChapters, type StudioChapter } from './studioData'
 import { studioSandboxDocument } from './studioSandbox'
 import './ProductStudio.css'
 
@@ -8,6 +8,7 @@ type SandboxResult = {
   kind: 'done' | 'error'
   outputs?: Execution[]
   preview?: Execution
+  sample?: Execution
   error?: string
 }
 type StudioCheck = {
@@ -17,7 +18,7 @@ type StudioCheck = {
   actual: string
   hint: string
 }
-type StudioFeedback = { checks: StudioCheck[] }
+type StudioFeedback = { checks: StudioCheck[]; sample: Execution }
 
 const CODE_KEY = 'mesleklab-studio-codes-v1'
 const PROGRESS_KEY = 'mesleklab-studio-completed-v1'
@@ -41,11 +42,11 @@ const productActions: Record<string, string> = {
 }
 
 function loadCodes(): Record<string, string> {
-  const initial = Object.fromEntries(studioChapters.map((chapter) => [chapter.id, chapter.starter]))
+  const initial = Object.fromEntries(studioChapters.map((chapter) => [chapter.id, completeStudioSource(chapter, chapter.starter)]))
   try {
     const saved = JSON.parse(window.localStorage.getItem(CODE_KEY) || '{}') as Record<string, unknown>
     for (const chapter of studioChapters) {
-      if (typeof saved[chapter.id] === 'string') initial[chapter.id] = (saved[chapter.id] as string).slice(0, 18000)
+      if (typeof saved[chapter.id] === 'string') initial[chapter.id] = completeStudioSource(chapter, (saved[chapter.id] as string).slice(0, 18000))
     }
   } catch { /* Depolama kapalıysa başlangıç kodları kullanılır. */ }
   return initial
@@ -273,7 +274,7 @@ export function ProductStudio() {
   const modeRef = useRef<'tests' | 'preview'>('tests')
 
   const chapter = studioChapters[active]
-  const code = codes[chapter.id] ?? chapter.starter
+  const code = codes[chapter.id] ?? completeStudioSource(chapter, chapter.starter)
   const completedCount = studioChapters.filter((item) => completed[item.id]).length
   const passedCount = feedback?.checks.filter((check) => check.passed).length ?? 0
   const allPassed = !!feedback && passedCount === chapter.tests.length
@@ -319,7 +320,7 @@ export function ProductStudio() {
         }
       })
       setRunError('')
-      setFeedback({ checks })
+      setFeedback({ checks, sample: payload.sample ?? { ok: false, error: 'Örnek kod bir sonuç üretmedi.' } })
       if (checks.every((check) => check.passed)) {
         setCompleted((prev) => ({ ...prev, [chapter.id]: true }))
       }
@@ -399,7 +400,7 @@ export function ProductStudio() {
   }
 
   function resetCode() {
-    updateCode(chapter.starter)
+    updateCode(completeStudioSource(chapter, chapter.starter))
   }
 
   function onEditorKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -463,6 +464,16 @@ export function ProductStudio() {
             {busy ? '⏳ Çalıştırılıyor...' : '▶ Kodu çalıştır ve test et'}
           </button>
           <button type="button" className="ps-reset-button" onClick={resetCode}>↻ Başlangıç kodu</button>
+        </div>
+
+        <div className="ps-sample-panel">
+          <div className="ps-sample-title"><strong>🧾 Örnek verilerle çalıştırma</strong><span>ornekSonuc</span></div>
+          <p>Yukarıdaki kodun başında <code>let</code> veya <code>const</code> ile tanımladığın örnek değerleri değiştirebilirsin. Kodun sonundaki fonksiyon çağrısı bu değerleri kullanır.</p>
+          {feedback && <div className={'ps-sample-output ' + (feedback.sample.ok ? 'positive' : 'negative')}>
+            <strong>Örnek çalıştırmanın sonucu:</strong>
+            <code>{feedback.sample.ok ? visibleValue(feedback.sample.value) : feedback.sample.error || 'Hata oluştu'}</code>
+          </div>}
+          <small>Soldaki test düğmesi hem bu örneği hem farklı test verilerini çalıştırır. Sağdaki bilet uygulaması ise ekranda seçtiğin değerleri fonksiyona gönderir.</small>
         </div>
 
         <div className="ps-hint-area">
