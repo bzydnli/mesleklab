@@ -2,3 +2,33 @@
 .studio-layout{grid-template-columns:minmax(0,1fr)!important}.studio-layout .lab-main-panel{padding:0!important;overflow:hidden;background:#091423;border-color:#2d405a}
 
 .ps-inline-code{display:inline;padding:2px 5px;border-radius:5px;background:#101d35;color:#bef9dc;border:1px solid #36536d;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.95em;white-space:normal;overflow-wrap:anywhere;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+
+/* Etkinlik vitrini, gerçek alışveriş sepeti ve uygulama içi işlem butonu */
+.ps-shop-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px}
+.ps-shop-heading strong{color:#2f2844;font-size:12px}
+.ps-shop-heading small{font-size:9px;color:#8b8199;text-align:right}
+.ps-shop-heading.basket{padding-top:16px;border-top:1px solid #e6e0ed;margin-top:17px}
+.ps-shop-catalog{display:grid;grid-template-columns:1fr;gap:7px;margin-top:9px}
+.ps-shop-product{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #e6e1ed;border-radius:11px;padding:9px 10px;min-width:0}
+.ps-shop-product .ps-cart-cover{flex:0 0 36px;width:36px;height:36px}
+.ps-shop-product-copy{flex:1;min-width:0}
+.ps-shop-product-copy strong,.ps-cart-line-title strong{display:block;font-size:10px;color:#302744}
+.ps-shop-product-copy small,.ps-cart-line-title small{display:block;margin-top:3px;font-size:9px;color:#8b8296}
+.ps-shop-product>button{border:1px solid #d9ccf1;background:#f2ecff;color:#6740ac;border-radius:8px;padding:9px 10px;font-size:10px;font-weight:850;cursor:pointer;white-space:nowrap}
+.ps-shop-product>button:hover{background:#e4d8ff}
+.ps-cart-items{display:flex;flex-direction:column;gap:7px;margin-top:8px}
+.ps-cart-empty{border:1px dashed #d9cde7;border-radius:10px;background:#fff;color:#8d789e;text-align:center;padding:20px 13px;font-size:10px;line-height:1.6}
+.ps-cart-row{gap:7px;flex-wrap:wrap}
+.ps-cart-row .ps-cart-cover{flex:0 0 33px}
+.ps-cart-line-title{flex:1 1 90px;min-width:0}
+.ps-cart-qty{display:flex;flex:0 0 auto!important;align-items:center;gap:6px;background:#f5f1fa;border:1px solid #e3dbea;padding:3px;border-radius:8px}
+.ps-cart-qty button{width:23px;height:23px;display:grid;place-items:center;border:0;border-radius:6px;background:#e5d7f4;color:#59339d;font-size:17px;line-height:1;cursor:pointer}
+.ps-cart-qty span{display:inline-block;min-width:17px;text-align:center;font-size:11px;font-weight:900;color:#382350}
+.ps-cart-price{font-size:11px;color:#4c368c;white-space:nowrap;margin-left:auto}
+.ps-cart-remove{width:24px;height:26px;display:grid;place-items:center;border:0;border-radius:7px;background:#f7ecef;color:#a04661;font-size:18px;cursor:pointer}
+.ps-product-action{margin-top:15px}
+.ps-app-submit{display:block;width:100%;padding:14px 16px;min-height:46px;border:0;border-radius:10px;background:linear-gradient(115deg,#7552d4,#a16ce1);color:white;font-size:12px;font-weight:850;letter-spacing:.02em;cursor:pointer;box-shadow:0 6px 17px #6d4dcc30}
+.ps-app-submit:hover:not(:disabled){filter:brightness(1.09)}
+.ps-app-submit:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.ps-product-action>small{display:block;font-size:9px;color:#9c6b79;margin-top:7px}
+@media(max-width:540px){.ps-shop-product{padding:8px}.ps-shop-product-copy strong,.ps-cart-line-title strong{font-size:10px}.ps-cart-qty{gap:3px}.ps-cart-qty button{width:22px;height:22px}.ps-cart-price{font-size:10px}.ps-cart-row .ps-cart-cover{width:29px;flex-basis:29px}}
