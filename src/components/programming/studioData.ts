@@ -56,8 +56,8 @@ export const studioChapters: StudioChapter[] = [
   {
     id: 'sepet', eyebrow: '03 · YOĞUN GÜN', title: 'Sepeti toparla',
     topic: 'Diziler · Döngüler · Toplama',
-    story: 'Müşteriler aynı anda farklı etkinliklerden bilet seçiyor. Sepet toplamı yanlış hesaplanıyor.',
-    mission: 'Sepetteki her ürünü ve adedini hesaba katarak doğru toplamı oluştur.',
+    story: 'Müşteri farklı etkinliklerden istediği kadar bilet seçip sepete ekliyor. Uygulamanın sepeti doğru hesaplaması gerekiyor.',
+    mission: 'Sağdaki mağazadan en az iki etkinlik ekle, adetlerini ayrı ayrı değiştir ve sepet toplamını hesaplayan kodu düzelt.',
     takeaway: 'Benzer işleri tek tek yazmak yerine bir koleksiyon üzerinde tekrarlayabilirsin.',
     functionName: 'sepetToplami',
     starter: ['function sepetToplami(siparisler) {', '  let toplam = 0;', '', '  for (const siparis of siparisler) {', '    toplam += siparis.fiyat;', '  }', '', '  return toplam;', '}'].join('\n'),
