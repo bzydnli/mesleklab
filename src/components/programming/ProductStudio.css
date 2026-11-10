@@ -32,3 +32,17 @@
 .ps-app-submit:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
 .ps-product-action>small{display:block;font-size:9px;color:#9c6b79;margin-top:7px}
 @media(max-width:540px){.ps-shop-product{padding:8px}.ps-shop-product-copy strong,.ps-cart-line-title strong{font-size:10px}.ps-cart-qty{gap:3px}.ps-cart-qty button{width:22px;height:22px}.ps-cart-price{font-size:10px}.ps-cart-row .ps-cart-cover{width:29px;flex-basis:29px}}
+
+/* Tam program örneğini ve düzenlenebilir veri tanımlarını açıkça göster */
+.ps-sample-panel{padding:15px;border:1px solid #405472;border-radius:12px;background:linear-gradient(145deg,#142c3d,#15253d)}
+.ps-sample-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ps-sample-title strong{font-size:12px;color:#daf8ed}
+.ps-sample-title span{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10px;color:#8fddc6;background:#1f504a;padding:5px 8px;border-radius:6px}
+.ps-sample-panel p{color:#b2c7d4;font-size:11px;line-height:1.7;margin:9px 0}
+.ps-sample-panel p code{color:#c6f8df;background:#244c48;border-radius:4px;padding:2px 5px}
+.ps-sample-panel>small{color:#9fb8cd;font-size:10px;line-height:1.7;display:block}
+.ps-sample-output{margin:12px 0;padding:12px;border-radius:10px;display:flex;flex-wrap:wrap;gap:7px;align-items:baseline;border:1px solid #356a59;background:#1e453e}
+.ps-sample-output.negative{border-color:#8d5057;background:#462d36}
+.ps-sample-output strong{font-size:10px;color:#a9ddc7}
+.ps-sample-output code{white-space:pre-wrap;overflow-wrap:anywhere;color:#f0fff5;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px}
+.ps-editor-bottom span:first-child{line-height:1.5}
