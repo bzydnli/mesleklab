@@ -79,9 +79,9 @@ export function NetworkPlayground() {
     : missionIndex === 1 || missionIndex === 2
       ? ['pc1', 'pc2', 'pc3'].every((id) => hasCable(world, id, 'sw1'))
       : hasCable(world, 'r1', 'sw2')
-  const configurationGoal = missionIndex === 2
+  const configurationGoal = connectedGoal && (missionIndex === 2
     ? (tests[0]?.passed ?? false)
-    : missionIndex === 3 ? (tests[1]?.passed ?? false) : true
+    : missionIndex === 3 ? (tests[1]?.passed ?? false) : true)
   const pingGoal = !!ping?.ok && tests.every((item) => item.passed)
   const activeGuideStep = !connectedGoal ? 1 : !configurationGoal ? 2 : 3
   const possibleSources = endpoints(world)
@@ -298,6 +298,8 @@ export function NetworkPlayground() {
     setSelectedWireId(null)
     setCableStart(null)
     setCableMode(false)
+    setAddMenuOpen(false)
+    setAdvancedOpen(false)
     resetSimulation()
     setNotice({ tone: 'normal', text: 'Çalışma alanı başlangıç durumuna getirildi.' })
   }
