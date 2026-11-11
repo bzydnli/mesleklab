@@ -242,3 +242,51 @@
 @media(max-width:900px){.nw-workspace-v2{display:flex;flex-direction:column;gap:11px}.nw-guide,.nw-main-v2{width:100%}.nw-guide-card{position:static}.nw-guide-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.nw-guide-steps li{flex-direction:column;gap:8px}.nw-guide-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.nw-guide-checks-heading{grid-column:1/-1}.nw-board-v2{min-height:460px}.nw-inspector-drawer{width:275px;right:28px}}
 @media(max-width:630px){.nw-guide-steps{display:flex;flex-direction:column;gap:6px}.nw-guide-steps li{flex-direction:row;padding:9px}.nw-guide-card{padding:15px 12px}.nw-guide-checks{display:block}.nw-scene-toolbar{margin:0 8px 8px;gap:5px;padding:7px}.nw-tool-button{min-height:38px;padding:9px 10px;font-size:10px}.nw-tool-button.nw-reset-tool{margin-left:auto}.nw-add-menu{width:218px}.nw-map-heading-v2{padding:15px 12px 11px}.nw-map-heading-v2 h3{font-size:19px}.nw-map-stats{justify-content:flex-start}.nw-scene-help{margin:0 8px 8px;padding:8px}.nw-board-v2{margin:0 8px;min-height:370px}.nw-inspector-drawer{position:relative;right:auto;top:auto;width:auto;max-width:none;max-height:none;margin:9px 8px 0;padding:13px;box-shadow:none;backdrop-filter:none}.nw-feedback-strip{margin:9px 8px 0}.nw-ping-dock{margin:9px 8px 12px;padding:12px}.nw-ping-dock .nw-ping-controls{display:flex;align-items:stretch;flex-wrap:wrap}.nw-auto-ping-pair{flex-basis:100%;gap:6px}.nw-auto-ping-pair>span:not(.nw-auto-arrow){padding:7px 8px}.nw-ping-dock .nw-ping-controls>button{width:100%;flex-basis:100%}.nw-link-disclosure{margin:0 9px 13px}.nw-workbench-card{overflow:visible}}
 @media(prefers-reduced-motion:reduce){.nw-guide-steps li{transition:none}}
+
+
+/* v3 — Kablo işlemleri aynı araç çubuğunda, altta yinelenen panel yok */
+.nw-wire-menu-container{position:relative}
+.nw-wires-toggle{white-space:nowrap;background:#1b3950;border-color:#416379}
+.nw-wires-toggle>span{margin-left:5px;font-size:11px;opacity:.8}
+.nw-toolbar-tip{font-size:10px;line-height:1.45;color:#bdecdc;max-width:210px;flex:1 1 145px}
+.nw-wires-menu{position:absolute;top:calc(100% + 9px);left:0;z-index:65;width:min(340px,78vw);max-height:280px;overflow:auto;box-sizing:border-box;background:#0c1f31;border:1px solid #468b85;border-radius:13px;padding:12px;box-shadow:0 22px 46px #061426dc}
+.nw-wire-menu-title{padding:1px 2px 8px;border-bottom:1px solid #29465c;display:flex;flex-direction:column;gap:3px}
+.nw-wire-menu-title strong{font-size:12px;color:#edfafa}
+.nw-wire-menu-title small{font-size:10px;color:#9fb7c9}
+.nw-wires-menu>p{margin:12px 2px 2px;color:#b3c8d8;font-size:11px;line-height:1.5}
+.nw-wire-menu-row{padding:10px 0;border-bottom:1px solid #254056;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.nw-wire-menu-row:last-child{border-bottom:0;padding-bottom:0}
+.nw-wire-menu-row>span{font-size:10px;line-height:1.5;overflow-wrap:anywhere;min-width:0;color:#cae8e4}
+.nw-wire-menu-row b{color:#7fe0bf;font-weight:800}
+.nw-wire-menu-row>button{border:1px solid #7b5059;background:#3d2938;color:#ffd3d9;border-radius:7px;padding:7px 9px;font-weight:800;font-size:10px;cursor:pointer;flex:0 0 auto}
+.nw-wire-menu-row>button:hover{background:#613340;border-color:#c27686}
+.nw-stage-wrap{margin-top:9px}
+.nw-workbench-card .nw-feedback-strip{margin:11px 14px 0}
+/* Serbest laboratuvar başlangıç seçimi */
+.nw-start-picker{margin:15px 0;padding:13px;border:1px solid #42775f;background:linear-gradient(145deg,#204c45,#193348);border-radius:12px;display:flex;flex-direction:column;gap:9px}
+.nw-start-picker>strong{font-size:12px;color:#d2ffe8}
+.nw-start-picker>p{font-size:10px;color:#b6d7cd;line-height:1.55}
+.nw-start-picker>button{border:1px solid transparent;border-radius:9px;min-height:38px;padding:9px 12px;font-size:11px;font-weight:850;cursor:pointer}
+.nw-start-primary{background:#8ae9c0;color:#123e32}
+.nw-start-primary:hover{background:#b8ffe0}
+.nw-start-secondary{background:transparent!important;color:#c1f1e2!important;border-color:#57907c!important}
+.nw-start-secondary:hover{background:#245a4b!important}
+/* Küçük bir şema ve seçerek açılan eğitsel kavram kartı */
+.nw-glossary{border:1px solid #3d6870;border-radius:13px;background:#152e41;margin:17px 0 0;padding:13px}
+.nw-glossary-heading{display:flex;gap:9px;align-items:center}
+.nw-glossary-heading>span{font-size:23px}
+.nw-glossary-heading strong{display:block;font-size:12px;color:#e4fcf2}
+.nw-glossary-heading small{display:block;color:#a2c6c8;font-size:10px;margin-top:4px}
+.nw-glossary-diagram{margin:11px 0 12px;padding:7px;border-radius:11px;background:#0f2839;border:1px solid #3f666a;text-align:center}
+.nw-glossary-diagram svg{display:block;width:100%;max-height:185px}
+.nw-glossary-diagram small{display:block;color:#a9c9ca;font-size:9px;line-height:1.55;padding:4px 2px 2px}
+.nw-glossary-tabs{display:flex;flex-wrap:wrap;gap:5px}
+.nw-glossary-tabs button{border-radius:7px;background:#244358;color:#c4dce7;border:1px solid #3e6174;padding:7px 9px;cursor:pointer;font-size:9px;font-weight:850}
+.nw-glossary-tabs button:hover:not(.active){background:#325669}
+.nw-glossary-tabs button.active{border-color:#92e9c5;background:#296151;color:#dbfff0}
+.nw-glossary-detail{margin-top:11px;border-radius:10px;border:1px solid #39636e;background:#112a3b;padding:12px}
+.nw-glossary-detail>strong{display:block;font-size:12px;color:#d8ffee}
+.nw-glossary-detail>span{display:block;margin:11px 0 4px;color:#86e7cb;font-size:10px;font-weight:800}
+.nw-glossary-detail p{margin:5px 0 0;font-size:10px;line-height:1.65;color:#c7d9e4}
+.nw-glossary-disclaimer{margin-top:10px!important;font-size:9px!important;line-height:1.5!important;color:#93aebb!important}
+@media(max-width:630px){.nw-scene-toolbar{flex-wrap:wrap}.nw-wire-menu-container{position:static}.nw-wires-menu{left:7px;top:calc(100% + 5px);width:calc(100% - 14px)}.nw-toolbar-tip{order:4;flex:1 1 100%;margin-left:3px}.nw-glossary{padding:11px}.nw-glossary-tabs button{font-size:10px}.nw-wire-menu-row{gap:6px}.nw-wire-menu-row>button{padding:8px 6px}}
