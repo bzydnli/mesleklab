@@ -464,17 +464,37 @@ export function NetworkPlayground() {
                 setSelectedId(null)
                 setSelectedWireId(null)
                 setAddMenuOpen(false)
+                setWiresOpen(false)
                 setNotice({ tone: 'normal', text: cableMode ? 'Kablo modu kapatıldı. Bir cihaza tıklayarak ayarlarını açabilirsin.' :
                   'Kablo modu açık. Önce ilk cihaza, sonra bağlayacağın diğer cihaza tıkla.' })
               }}>{cableMode ? '✓ Kablo modu açık' : '🔌 Kablo bağla'}</button>
-            {cableMode && <button type="button" className="nw-tool-button nw-select-tool" onClick={() => {
-              setCableMode(false); setCableStart(null)
-              setNotice({ tone: 'normal', text: 'Cihaz seçme moduna döndün. Bir cihaza dokunarak ayarlarını aç.' })
-            }}>↖ Cihaz seç</button>}
+            {cableMode && <span className="nw-toolbar-tip" role="status">
+              {cableStart ? 'İlk cihaz seçildi. İkinci cihaza tıkla.' : 'Bağlamak istediğin iki cihaza sırayla tıkla.'}
+            </span>}
+            <div className="nw-wire-menu-container">
+              <button type="button" className={'nw-tool-button nw-wires-toggle ' + (wiresOpen ? 'nw-tool-active' : '')}
+                aria-expanded={wiresOpen} aria-controls="nw-wire-menu"
+                onClick={() => {
+                  setWiresOpen((current) => !current)
+                  setAddMenuOpen(false)
+                }}>✂ Kablolar ({world.links.length}) <span aria-hidden="true">{wiresOpen ? '▴' : '▾'}</span></button>
+              {wiresOpen && <div className="nw-wires-menu" id="nw-wire-menu">
+                <div className="nw-wire-menu-title"><strong>Bağlı kablolar</strong>
+                  <small>Kaldırmak için düğmeye bas.</small></div>
+                {world.links.length === 0 ? <p>Henüz kablo yok. “Kablo bağla” ile başlayabilirsin.</p> :
+                  world.links.map((wire) => <div className="nw-wire-menu-row" key={wire.id}>
+                    <span>🔌 {world.devices.find((item) => item.id === wire.from)?.name}
+                      <b> ↔ </b>{world.devices.find((item) => item.id === wire.to)?.name}</span>
+                    <button type="button" aria-label={world.devices.find((item) => item.id === wire.from)?.name +
+                      ' ile ' + world.devices.find((item) => item.id === wire.to)?.name + ' kablosunu kaldır'}
+                      onClick={() => deleteWire(wire.id)}>Kaldır ×</button>
+                  </div>)}
+              </div>}
+            </div>
 
             {mode === 'free' && <div className="nw-add-tools">
               <button type="button" className={'nw-tool-button nw-add-toggle ' + (addMenuOpen ? 'nw-tool-active' : '')}
-                aria-expanded={addMenuOpen} onClick={() => { setAddMenuOpen((current) => !current); setCableMode(false); setCableStart(null) }}>＋ Cihaz ekle</button>
+                aria-expanded={addMenuOpen} onClick={() => { setAddMenuOpen((current) => !current); setWiresOpen(false); setCableMode(false); setCableStart(null) }}>＋ Cihaz ekle</button>
               {addMenuOpen && <div className="nw-add-menu" role="group" aria-label="Yeni cihaz ekle">
                 {(['pc', 'switch', 'router', 'server'] as DeviceKind[]).map((kind) =>
                   <button type="button" key={kind} disabled={world.devices.length >= 18} onClick={() => addDevice(kind)}>
@@ -484,16 +504,6 @@ export function NetworkPlayground() {
             </div>}
 
             <button type="button" className="nw-tool-button nw-reset-tool" onClick={restartWorld}>↺ Başa al</button>
-          </div>
-
-          <div className={'nw-scene-help ' + (cableMode ? 'cable' : '')} aria-live="polite">
-            <span className="nw-scene-help-icon">{cableMode ? '🔌' : '☝'}</span>
-            <div><strong>{cableMode ? cableStart ? 'İlk cihaz seçildi. İkinci cihaza dokun.' : 'Kablo bağlama modu' :
-              selected ? selected.name + ' seçildi' : 'Ağ sahnesi hazır'}</strong>
-              <small>{cableMode ? 'İki cihazı sırayla seçerek bağlantıyı tamamla.' :
-                selected ? 'IP ayarları sahnenin sağında açıldı.' :
-                  mode === 'missions' && !connectedGoal ? 'Üstteki “Kablo bağla” düğmesiyle başla.' :
-                    'Cihaza tıkla: ayarları açılır. Kabloya dokun: bağlantı seçilir.'}</small></div>
           </div>
 
           <div className="nw-stage-wrap">
@@ -600,10 +610,10 @@ export function NetworkPlayground() {
             </div>}
           </div>
 
-          <div className={'nw-feedback-strip ' + notice.tone} aria-live="polite">
-            <span>{notice.tone === 'success' ? '✓' : notice.tone === 'warning' ? '!' : 'ℹ'}</span>
+          {notice.tone !== 'normal' && <div className={'nw-feedback-strip ' + notice.tone} aria-live="polite">
+            <span>{notice.tone === 'success' ? '✓' : '!'}</span>
             <p>{notice.text}</p>
-          </div>
+          </div>}
 
           <section className="nw-ping-dock" aria-label="Bağlantıyı test et">
             <div className="nw-ping-heading">
@@ -663,13 +673,6 @@ export function NetworkPlayground() {
             </div>}
           </section>
 
-          {world.links.length > 0 && <details className="nw-link-disclosure">
-            <summary>🔌 Bağlantıları yönet <span>{world.links.length} kablo</span></summary>
-            <div>{world.links.map((wire) => <button type="button" key={wire.id}
-              onClick={() => { setSelectedWireId(wire.id); setSelectedId(null); setCableMode(false); setCableStart(null) }}>
-              {world.devices.find((item) => item.id === wire.from)?.name} ↔ {world.devices.find((item) => item.id === wire.to)?.name}
-            </button>)}</div>
-          </details>}
         </section>
       </main>
     </div>
