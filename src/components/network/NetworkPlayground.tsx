@@ -468,9 +468,6 @@ export function NetworkPlayground() {
                 setNotice({ tone: 'normal', text: cableMode ? 'Kablo modu kapatıldı. Bir cihaza tıklayarak ayarlarını açabilirsin.' :
                   'Kablo modu açık. Önce ilk cihaza, sonra bağlayacağın diğer cihaza tıkla.' })
               }}>{cableMode ? '✓ Kablo modu açık' : '🔌 Kablo bağla'}</button>
-            {cableMode && <span className="nw-toolbar-tip" role="status">
-              {cableStart ? 'İlk cihaz seçildi. İkinci cihaza tıkla.' : 'Bağlamak istediğin iki cihaza sırayla tıkla.'}
-            </span>}
             <div className="nw-wire-menu-container">
               <button type="button" className={'nw-tool-button nw-wires-toggle ' + (wiresOpen ? 'nw-tool-active' : '')}
                 aria-expanded={wiresOpen} aria-controls="nw-wire-menu"
@@ -491,6 +488,9 @@ export function NetworkPlayground() {
                   </div>)}
               </div>}
             </div>
+            {cableMode && <span className="nw-toolbar-tip" role="status">
+              {cableStart ? 'İlk cihaz seçildi. İkinci cihaza tıkla.' : 'Bağlamak istediğin iki cihaza sırayla tıkla.'}
+            </span>}
 
             {mode === 'free' && <div className="nw-add-tools">
               <button type="button" className={'nw-tool-button nw-add-toggle ' + (addMenuOpen ? 'nw-tool-active' : '')}
