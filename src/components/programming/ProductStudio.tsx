@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { completeStudioSource, studioChapters, type StudioChapter } from './studioData'
 import { studioSandboxDocument } from './studioSandbox'
 import './ProductStudio.css'
@@ -79,6 +79,37 @@ function formatHint(text: string) {
       ? <code key={index} className="ps-inline-code">{part.slice(1, -1)}</code>
       : part,
   )
+}
+
+const syntaxTokens = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b(?:function|return|const|let|var|if|else|for|while|do|of|in|break|continue|switch|case|default|new|class|try|catch|finally|throw|async|await)\b|\b(?:true|false|null|undefined)\b|\b\d+(?:\.\d+)?\b|\b[A-Za-z_$][\w$]*\b|(?:===|!==|==|!=|<=|>=|=>|\+\+|--|\+=|-=|\*=|\/=|&&|\|\||[=+\-*/<>!%&|?])|[{}()[\],;:.])/g
+
+function highlightJavaScript(source: string): ReactNode[] {
+  const parts: ReactNode[] = []
+  let last = 0
+  let key = 0
+  // Açıklamalar ve metinler önce tanınır; içlerindeki sözcükler tekrar renklendirilmez.
+  for (const match of source.matchAll(syntaxTokens)) {
+    const index = match.index ?? 0
+    if (index > last) parts.push(source.slice(last, index))
+    const token = match[0]
+    const after = source.slice(index + token.length)
+    const before = source.slice(0, index)
+    let kind = 'punctuation'
+    if (token.startsWith('//') || token.startsWith('/*')) kind = 'comment'
+    else if (/^["'`]/.test(token)) kind = 'string'
+    else if (/^(?:function|return|const|let|var|if|else|for|while|do|of|in|break|continue|switch|case|default|new|class|try|catch|finally|throw|async|await)$/.test(token)) kind = 'keyword'
+    else if (/^(?:true|false|null|undefined)$/.test(token)) kind = 'boolean'
+    else if (/^\d/.test(token)) kind = 'number'
+    else if (/^[A-Za-z_$]/.test(token)) {
+      kind = /^\s*\(/.test(after) ? 'function' : /[.]\s*$/.test(before) || /^\s*:/.test(after) ? 'property' : 'identifier'
+    } else if (/^[=+\-*/<>!%&|?]/.test(token)) kind = 'operator'
+    parts.push(<span className={'ps-syntax-' + kind} key={key++}>{token}</span>)
+    last = index + token.length
+  }
+  if (last < source.length) parts.push(source.slice(last))
+  // Son satır yeni satır karakteriyle bitiyorsa imleç için boş satırı koru.
+  if (source.endsWith('\n')) parts.push(' ')
+  return parts
 }
 
 function visibleValue(input: unknown): string {
@@ -270,11 +301,14 @@ export function ProductStudio() {
   const [runError, setRunError] = useState('')
   const frameRef = useRef<HTMLIFrameElement | null>(null)
   const codeRef = useRef<HTMLTextAreaElement | null>(null)
+  const coloredCodeRef = useRef<HTMLPreElement | null>(null)
+  const lineNumbersRef = useRef<HTMLDivElement | null>(null)
   const requestRef = useRef(0)
   const modeRef = useRef<'tests' | 'preview'>('tests')
 
   const chapter = studioChapters[active]
   const code = codes[chapter.id] ?? completeStudioSource(chapter, chapter.starter)
+  const highlightedCode = useMemo(() => highlightJavaScript(code), [code])
   const completedCount = studioChapters.filter((item) => completed[item.id]).length
   const passedCount = feedback?.checks.filter((check) => check.passed).length ?? 0
   const allPassed = !!feedback && passedCount === chapter.tests.length
@@ -449,14 +483,25 @@ export function ProductStudio() {
           <div className="ps-editor-top"><div><i/><span>ticketly.js</span></div>
             <span>JAVASCRIPT</span></div>
           <div className="ps-code-area">
-            <div className="ps-line-numbers" aria-hidden="true">
+            <div className="ps-line-numbers" ref={lineNumbersRef} aria-hidden="true">
               {code.split('\n').map((_, index) => <span key={index}>{index + 1}</span>)}
             </div>
-            <textarea ref={codeRef} value={code}
-              style={{ height: Math.max(280, Math.min(750, code.split('\n').length * 23 + 30)) }}
-              onChange={(event) => updateCode(event.target.value)}
-              onKeyDown={onEditorKeyDown} spellCheck={false} autoCapitalize="off" autoCorrect="off"
-              aria-label={chapter.title + ' JavaScript kod editörü'}/>
+            <div className="ps-highlight-editor">
+              <pre ref={coloredCodeRef} className="ps-highlight-layer" aria-hidden="true">{highlightedCode}</pre>
+              <textarea ref={codeRef} value={code}
+                style={{ height: Math.max(280, Math.min(750, code.split('\n').length * 23 + 30)) }}
+                onChange={(event) => updateCode(event.target.value)}
+                onScroll={(event) => {
+                  const element = event.currentTarget
+                  if (coloredCodeRef.current) {
+                    coloredCodeRef.current.scrollTop = element.scrollTop
+                    coloredCodeRef.current.scrollLeft = element.scrollLeft
+                  }
+                  if (lineNumbersRef.current) lineNumbersRef.current.scrollTop = element.scrollTop
+                }}
+                onKeyDown={onEditorKeyDown} spellCheck={false} autoCapitalize="off" autoCorrect="off"
+                aria-label={chapter.title + ' JavaScript kod editörü'}/>
+            </div>
           </div>
           <div className="ps-editor-bottom"><span>● Kodun tarayıcındaki yalıtılmış alanda çalıştırılır.</span><span>JS</span></div>
         </div>
