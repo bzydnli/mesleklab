@@ -36,9 +36,9 @@ export const labs: LabDefinition[] = [
   },
   {
     id: 'ag', areaId: 'bilisim', title: 'Ağ Laboratuvarı', shortTitle: 'Ağ', icon: '🌐',
-    description: 'Bilgisayar, switch ve router bağlantılarını kur; IP adresleme ve paket akışını gör.', grade: '9–11. sınıf', status: 'planned', path: '/bilisim/ag',
-    topics: ['IP adresi', 'Subnet', 'Switch', 'Router', 'Ping'],
-    outcomes: ['Basit ağ topolojisi kurma', 'IP yapılandırma', 'Paketin ağdaki yolunu anlama'],
+    description: 'Okulun ağ yöneticisi ol: kablo çek, IP ayarlarını düzenle, ping paketlerini izle; sonra serbest laboratuvarda kendi ağını kur.', grade: '9–12. sınıf seviyeleri', status: 'ready', path: '/bilisim/ag',
+    topics: ['Fiziksel ağ', 'Switch ve portlar', 'IPv4 ve subnet', 'Router ve ağ geçidi', 'Ping ile hata ayıklama'],
+    outcomes: ['Ağ cihazlarını doğru bağlama', 'IP çakışmalarını giderme', 'Farklı ağları router ile haberleştirme', 'Ping sonucunu yorumlama'],
   },
   {
     id: 'yapay-zeka-ml', areaId: 'bilisim', title: 'Yapay Zekâ & ML Laboratuvarı', shortTitle: 'Yapay Zekâ & ML', icon: '🤖',
