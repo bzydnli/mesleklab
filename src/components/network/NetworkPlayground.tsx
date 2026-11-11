@@ -4,6 +4,7 @@ import {
   missionChecks, runPing, scenarios,
   type DeviceKind, type NetworkDevice, type NetworkLink, type NetworkState, type PingResult,
 } from './networkEngine'
+import { NetworkGlossary } from './NetworkGlossary'
 import './NetworkPlayground.css'
 
 type Mode = 'missions' | 'free'
@@ -59,6 +60,8 @@ export function NetworkPlayground() {
   })
   const [hintOpen, setHintOpen] = useState(false)
   const [addMenuOpen, setAddMenuOpen] = useState(false)
+  const [wiresOpen, setWiresOpen] = useState(false)
+  const [freeSetup, setFreeSetup] = useState<'example' | 'blank' | null>(null)
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [missionReviewed, setMissionReviewed] = useState(false)
   const [ping, setPing] = useState<PingResult | null>(null)
@@ -130,6 +133,7 @@ export function NetworkPlayground() {
     setHintOpen(false)
     setAdvancedOpen(false)
     setAddMenuOpen(false)
+    setWiresOpen(false)
     resetSimulation()
     if (next === 'missions') {
       setSourceId(scenario.source)
@@ -156,6 +160,7 @@ export function NetworkPlayground() {
     setHintOpen(false)
     setAdvancedOpen(false)
     setAddMenuOpen(false)
+    setWiresOpen(false)
     resetSimulation()
     setNotice({ tone: 'normal', text: 'Yeni görev yüklendi. Cihazlara dokunarak özelliklerini inceleyebilirsin.' })
   }
@@ -269,6 +274,35 @@ export function NetworkPlayground() {
     setNotice({ tone: 'success', text: item.name + ' eklendi. Cihazı sürükleyebilir, ayarlarını değiştirebilirsin.' })
   }
 
+  function createExampleNetwork() {
+    if (mode !== 'free') return
+    const example: NetworkState = {
+      devices: [
+        { id: 'demo-pc1', name: 'PC-01', kind: 'pc', x: 20, y: 32, ip: '192.168.1.10', ip2: '', mask: '255.255.255.0', gateway: '' },
+        { id: 'demo-pc2', name: 'PC-02', kind: 'pc', x: 80, y: 32, ip: '192.168.1.11', ip2: '', mask: '255.255.255.0', gateway: '' },
+        { id: 'demo-sw', name: 'SWITCH-01', kind: 'switch', x: 50, y: 66, ip: '', ip2: '', mask: '255.255.255.0', gateway: '' },
+      ],
+      links: [],
+    }
+    setFreeWorld(example)
+    setFreeSetup('example')
+    setSelectedId(null)
+    setSelectedWireId(null)
+    setCableMode(false)
+    setCableStart(null)
+    setAddMenuOpen(false)
+    setWiresOpen(false)
+    resetSimulation()
+    setNotice({ tone: 'normal', text: 'İki bilgisayar ve bir switch hazır. Şimdi kabloları sen bağlayıp ping gönder.' })
+  }
+
+  function deleteWire(id: string) {
+    if (!world.links.some((item) => item.id === id)) return
+    editWorld((current) => ({ ...current, links: current.links.filter((wire) => wire.id !== id) }))
+    setSelectedWireId(null)
+    setNotice({ tone: 'success', text: 'Kablo kaldırıldı. İstersen iki cihazı yeniden bağlayabilirsin.' })
+  }
+
   function sendPing() {
     if (!source || !target) {
       setNotice({ tone: 'warning', text: 'Ping testi için en az iki bilgisayar veya sunucu gerekiyor.' })
@@ -300,6 +334,8 @@ export function NetworkPlayground() {
     setCableMode(false)
     setAddMenuOpen(false)
     setAdvancedOpen(false)
+    setWiresOpen(false)
+    if (mode === 'free') setFreeSetup(null)
     resetSimulation()
     setNotice({ tone: 'normal', text: 'Çalışma alanı başlangıç durumuna getirildi.' })
   }
@@ -395,9 +431,16 @@ export function NetworkPlayground() {
               <div><strong>Ping ile dene</strong><small>IP adreslerini kontrol et, kaynak ve hedefi seçip ping gönder.</small></div>
             </li>
           </ol>
-          <div className="nw-guide-tip"><strong>📍 Ağın kısa sözlüğü</strong>
-            <p><b>IP:</b> Cihazın ağdaki adresi. <b>Switch:</b> Aynı ağdaki cihazları bağlar. <b>Router:</b> Farklı ağlar arasında iletişim kurar.</p>
-          </div>
+          {world.devices.length === 0 && freeSetup === null && <div className="nw-start-picker">
+            <strong>✨ İlk ağını nasıl kurmak istersin?</strong>
+            <p>Örnekle başlarsan cihazlar yerleşir, kabloları ve IP kontrolünü sen yaparsın.</p>
+            <button type="button" className="nw-start-primary" onClick={createExampleNetwork}>🖥️ Örnek ağ oluştur</button>
+            <button type="button" className="nw-start-secondary" onClick={() => {
+              setFreeSetup('blank')
+              setNotice({ tone: 'normal', text: 'Boş çalışma alanın hazır. Sahnenin üstünden yeni cihaz ekleyebilirsin.' })
+            }}>＋ Boş ağdan başla</button>
+          </div>}
+          <NetworkGlossary/>
           <small className="nw-limits">En fazla 18 cihaz ekleyebilirsin. PC/sunucu 1, switch 8, router 4 bağlantı portu kullanır.</small>
         </section>}
       </aside>
