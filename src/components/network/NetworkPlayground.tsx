@@ -400,107 +400,231 @@ export function NetworkPlayground() {
         </section>}
       </aside>
 
-      <main className="nw-main">
-        <div className="nw-map-card">
-          <div className="nw-map-heading">
-            <div><span className="nw-kicker">{mode === 'missions' ? 'OKULUN DİJİTAL PLANI' : 'SERBEST TOPOLOJİ ALANI'}</span>
-              <h3>{mode === 'missions' ? 'Ağ kurulum sahnesi' : 'Kendi ağını tasarla'}</h3>
-              <p>Bir cihaza tıklayarak seç · Sürükleyerek taşı · Kablo moduyla bağla</p>
+      <main className="nw-main nw-main-v2">
+        <section className="nw-map-card nw-workbench-card">
+          <header className="nw-map-heading nw-map-heading-v2">
+            <div>
+              <span className="nw-kicker">{mode === 'missions' ? 'OKULUN DİJİTAL PLANI' : 'SERBEST KURULUM'}</span>
+              <h3>Ağ çalışma alanı</h3>
+              <p>Bağla · Bir cihaza dokunup ayarla · Hemen aşağıda test et</p>
             </div>
             <div className="nw-map-stats"><span>◉ {world.devices.length} cihaz</span><span>⌁ {world.links.length} kablo</span></div>
-          </div>
-          <div className="nw-board" ref={boardRef} aria-label="Sanal ağ topolojisi">
-            <div className="nw-board-area area-a">{mode === 'missions' && missionIndex === 3 ? 'BİLGİSAYAR LABORATUVARI' : 'OKUL AĞI'}</div>
-            {mode === 'missions' && missionIndex === 3 && <div className="nw-board-area area-b">ÖĞRETMENLER ODASI</div>}
-            <div className="nw-board-grid" aria-hidden="true"/>
-            <svg className="nw-wire-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Ağ kabloları">
-              {world.links.map((wire) => {
-                const a = world.devices.find((item) => item.id === wire.from)
-                const b = world.devices.find((item) => item.id === wire.to)
-                if (!a || !b) return null
-                return <g key={wire.id} className={selectedWireId === wire.id ? 'wire-selected' : ''}>
-                  <line className="nw-wire-hit" x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-                    onClick={() => { if (!cableMode) { setSelectedWireId(wire.id); setSelectedId(null) } }}/>
-                  <line className="nw-wire-visible" x1={a.x} y1={a.y} x2={b.x} y2={b.y}/>
-                </g>
-              })}
-            </svg>
-            {world.devices.map((item) => {
-              const wiresUsed = world.links.filter((wire) => wire.from === item.id || wire.to === item.id).length
-              return <button type="button" key={item.id}
-                className={'nw-node nw-node-' + item.kind + (selectedId === item.id ? ' selected' : '') +
-                  (cableStart === item.id ? ' cable-start' : '')}
-                style={{ left: item.x + '%', top: item.y + '%' }}
-                onPointerDown={(event) => startDrag(event, item.id)}
-                onPointerMove={(event) => moveDrag(event, item.id)}
-                onPointerUp={(event) => finishDrag(event, item.id)}
-                onPointerCancel={() => { dragRef.current = null }}
-                aria-label={item.name + ', ' + deviceNames[item.kind] + '. Düzenlemek için seç.'}
-                aria-pressed={selectedId === item.id}>
-                <span className="nw-node-icon">{deviceIcons[item.kind]}</span>
-                <strong>{item.name}</strong>
-                <small>{item.ip || wiresUsed + ' port bağlı'}</small>
-                <i className={'nw-port-dot ' + (wiresUsed ? 'connected' : '')}/>
-              </button>
-            })}
-            {packetDevice && <div className={'nw-packet ' + (packet?.phase === 'yanıt' ? 'reply' : '')}
-              style={{ left: packetDevice.x + '%', top: packetDevice.y + '%' }} aria-hidden="true">✉</div>}
-            {world.devices.length === 0 && <div className="nw-board-empty"><span>✳</span><strong>Boş bir ağ çalışma alanı</strong><p>Soldaki araçlardan bilgisayar, switch veya router ekleyerek başla.</p></div>}
-            {cableMode && <div className="nw-board-instruction">🔌 {cableStart ? 'İkinci cihazı seç' : 'İlk cihazı seç'}</div>}
-            <div className="nw-board-watermark">MESLEKLAB / NETWORK SIMULATOR</div>
-          </div>
-          <div className="nw-legend"><span><i className="nw-legend-connected"/> Kablo bağlantısı</span><span>✉ Ping paketi</span><span>● Aktif port</span><span>↔ Cihazlar sürüklenebilir</span></div>
-          <div className="nw-wires-list">
-            <strong>Bağlantılar</strong>
-            <div>{world.links.length === 0 ? <span className="nw-no-wires">Henüz kablo yok</span> : world.links.map((wire) =>
-              <button type="button" key={wire.id} className={selectedWireId === wire.id ? 'active' : ''}
-                onClick={() => { setSelectedWireId(wire.id); setSelectedId(null); setCableMode(false); setCableStart(null) }}>
-                🔌 {world.devices.find((item) => item.id === wire.from)?.name} ↔ {world.devices.find((item) => item.id === wire.to)?.name}
-              </button>)}</div>
-          </div>
-        </div>
+          </header>
 
-        <section className="nw-ping-card">
-          <div className="nw-ping-heading"><div><span className="nw-kicker">AĞ TEST MERKEZİ</span>
-            <h3>📨 Paketi gönder: Ping</h3><p>Gerçekte oluşturduğun ağda hedefe giden yolu kontrol et.</p></div>
-            {ping && <span className={'nw-ping-status ' + (ping.ok ? 'good' : 'bad')}>{ping.ok ? '✓ Bağlandı' : '✕ Ulaşılamadı'}</span>}
-          </div>
-          <div className="nw-ping-controls">
-            <label>Kaynak cihaz
-              <select value={source} onChange={(event) => { setSourceId(event.target.value); resetSimulation() }}>
-                {possibleSources.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.ip || 'IP yok'})</option>)}
-              </select>
-            </label>
-            <span className="nw-ping-arrow">→</span>
-            <label>Hedef cihaz
-              <select value={target} onChange={(event) => { setTargetId(event.target.value); resetSimulation() }}>
-                {possibleSources.filter((item) => item.id !== source).map((item) =>
-                  <option key={item.id} value={item.id}>{item.name} ({item.ip || 'IP yok'})</option>)}
-              </select>
-            </label>
-            <button type="button" onClick={sendPing} disabled={!source || !target}>▶ Ping gönder</button>
-          </div>
-          {ping ? <div className={'nw-terminal-result ' + (ping.ok ? 'success' : 'error')}>
-            <div className="nw-terminal-top"><span className="nw-terminal-dot"/><span>AG_DIAGNOSTIC.exe</span>
-              <span className="nw-terminal-tag">SİMÜLASYON</span></div>
-            <div className="nw-terminal-content">
-              <div className="nw-command">$ ping {world.devices.find((item) => item.id === target)?.ip ?? 'hedef'}</div>
-              <strong>{ping.title}</strong>
-              <p>{ping.detail}</p>
-              {ping.requestPath.length > 1 && <div className="nw-path">
-                {ping.requestPath.map((id, index) => <span key={id + '-' + index}>
-                  {index > 0 && <b>→</b>}{world.devices.find((item) => item.id === id)?.name ?? id}</span>)}
+          <div className="nw-scene-toolbar" role="toolbar" aria-label="Ağ sahnesi araçları">
+            <button type="button" className={'nw-tool-button ' + (cableMode ? 'nw-tool-active' : '')}
+              aria-pressed={cableMode} onClick={() => {
+                setCableMode(!cableMode)
+                setCableStart(null)
+                setSelectedId(null)
+                setSelectedWireId(null)
+                setAddMenuOpen(false)
+                setNotice({ tone: 'normal', text: cableMode ? 'Kablo modu kapatıldı. Bir cihaza tıklayarak ayarlarını açabilirsin.' :
+                  'Kablo modu açık. Önce ilk cihaza, sonra bağlayacağın diğer cihaza tıkla.' })
+              }}>{cableMode ? '✓ Kablo modu açık' : '🔌 Kablo bağla'}</button>
+            {cableMode && <button type="button" className="nw-tool-button nw-select-tool" onClick={() => {
+              setCableMode(false); setCableStart(null)
+              setNotice({ tone: 'normal', text: 'Cihaz seçme moduna döndün. Bir cihaza dokunarak ayarlarını aç.' })
+            }}>↖ Cihaz seç</button>}
+
+            {mode === 'free' && <div className="nw-add-tools">
+              <button type="button" className={'nw-tool-button nw-add-toggle ' + (addMenuOpen ? 'nw-tool-active' : '')}
+                aria-expanded={addMenuOpen} onClick={() => { setAddMenuOpen((current) => !current); setCableMode(false); setCableStart(null) }}>＋ Cihaz ekle</button>
+              {addMenuOpen && <div className="nw-add-menu" role="group" aria-label="Yeni cihaz ekle">
+                {(['pc', 'switch', 'router', 'server'] as DeviceKind[]).map((kind) =>
+                  <button type="button" key={kind} disabled={world.devices.length >= 18} onClick={() => addDevice(kind)}>
+                    <span>{deviceIcons[kind]}</span><span>{deviceNames[kind]}</span><strong>+</strong>
+                  </button>)}
               </div>}
-              {packet && <div className="nw-packet-caption">✉ {packet.phase === 'istek' ? 'İstek gidiyor' : 'Yanıt dönüyor'}: {world.devices.find((item) => item.id === packet.id)?.name}</div>}
+            </div>}
+
+            <button type="button" className="nw-tool-button nw-reset-tool" onClick={restartWorld}>↺ Başa al</button>
+          </div>
+
+          <div className={'nw-scene-help ' + (cableMode ? 'cable' : '')} aria-live="polite">
+            <span className="nw-scene-help-icon">{cableMode ? '🔌' : '☝'}</span>
+            <div><strong>{cableMode ? cableStart ? 'İlk cihaz seçildi. İkinci cihaza dokun.' : 'Kablo bağlama modu' :
+              selected ? selected.name + ' seçildi' : 'Ağ sahnesi hazır'}</strong>
+              <small>{cableMode ? 'İki cihazı sırayla seçerek bağlantıyı tamamla.' :
+                selected ? 'IP ayarları sahnenin sağında açıldı.' :
+                  mode === 'missions' && !connectedGoal ? 'Üstteki “Kablo bağla” düğmesiyle başla.' :
+                    'Cihaza tıkla: ayarları açılır. Kabloya dokun: bağlantı seçilir.'}</small></div>
+          </div>
+
+          <div className="nw-stage-wrap">
+            <div className="nw-board nw-board-v2" ref={boardRef} aria-label="Sanal ağ topolojisi">
+              <div className="nw-board-area area-a">{mode === 'missions' && missionIndex === 3 ? 'BİLGİSAYAR LABORATUVARI' : 'OKUL AĞI'}</div>
+              {mode === 'missions' && missionIndex === 3 && <div className="nw-board-area area-b">ÖĞRETMENLER ODASI</div>}
+              <div className="nw-board-grid" aria-hidden="true"/>
+              <svg className="nw-wire-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Ağ kabloları">
+                {world.links.map((wire) => {
+                  const a = world.devices.find((item) => item.id === wire.from)
+                  const b = world.devices.find((item) => item.id === wire.to)
+                  if (!a || !b) return null
+                  return <g key={wire.id} className={selectedWireId === wire.id ? 'wire-selected' : ''}>
+                    <line className="nw-wire-hit" x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                      onClick={() => {
+                        if (!cableMode) { setSelectedWireId(wire.id); setSelectedId(null); setAdvancedOpen(false) }
+                      }}/>
+                    <line className="nw-wire-visible" x1={a.x} y1={a.y} x2={b.x} y2={b.y}/>
+                  </g>
+                })}
+              </svg>
+              {world.devices.map((item) => {
+                const wiresUsed = world.links.filter((wire) => wire.from === item.id || wire.to === item.id).length
+                return <button type="button" key={item.id}
+                  className={'nw-node nw-node-' + item.kind + (selectedId === item.id ? ' selected' : '') +
+                    (cableStart === item.id ? ' cable-start' : '')}
+                  style={{ left: item.x + '%', top: item.y + '%' }}
+                  onPointerDown={(event) => startDrag(event, item.id)}
+                  onPointerMove={(event) => moveDrag(event, item.id)}
+                  onPointerUp={(event) => finishDrag(event, item.id)}
+                  onPointerCancel={() => { dragRef.current = null }}
+                  onClick={(event) => { if (event.detail === 0) tapDevice(item.id) }}
+                  aria-label={item.name + ', ' + deviceNames[item.kind] + '. Düzenlemek için seç.'}
+                  aria-pressed={selectedId === item.id}>
+                  <span className="nw-node-icon">{deviceIcons[item.kind]}</span>
+                  <strong>{item.name}</strong>
+                  <small>{item.ip || wiresUsed + ' port bağlı'}</small>
+                  <i className={'nw-port-dot ' + (wiresUsed ? 'connected' : '')}/>
+                </button>
+              })}
+              {packetDevice && <div className={'nw-packet ' + (packet?.phase === 'yanıt' ? 'reply' : '')}
+                style={{ left: packetDevice.x + '%', top: packetDevice.y + '%' }} aria-hidden="true">✉</div>}
+              {world.devices.length === 0 && <div className="nw-board-empty">
+                <span>✳</span><strong>Boş ağ çalışma alanı</strong>
+                <p>Yukarıdaki “+ Cihaz ekle” düğmesinden başlayabilirsin.</p>
+              </div>}
+              {cableMode && <div className="nw-board-instruction">🔌 {cableStart ? 'İkinci cihazı seç' : 'İlk cihazı seç'}</div>}
+              <div className="nw-board-watermark">MESLEKLAB / NETWORK SIMULATOR</div>
             </div>
-          </div> : <div className="nw-terminal-empty"><span>$ _</span> Ping çalıştırılmadı. Kaynak ve hedefi seçerek bağlantıyı deneyebilirsin.</div>}
-          {packetSteps.length > 1 && <div className="nw-packet-controls">
-            <button type="button" onClick={() => { setPacketIndex(0); setPlaying(true) }}>↺ Yeniden oynat</button>
-            <button type="button" onClick={() => setPlaying((current) => !current)} disabled={packetIndex >= packetSteps.length - 1 && !playing}>{playing ? '⏸ Duraklat' : '▶ Devam et'}</button>
-            <button type="button" onClick={() => { setPlaying(false); setPacketIndex((index) => Math.min(index + 1, packetSteps.length - 1)) }}
-              disabled={packetIndex >= packetSteps.length - 1}>⏭ Tek adım</button>
-            <span>{packetIndex + 1} / {packetSteps.length}</span>
-          </div>}
+
+            {(selected || selectedWire) && <div className="nw-inspector-drawer" role="region"
+              aria-label={selected ? 'Seçili cihaz ayarları' : 'Seçili kablo'}>
+              <div className="nw-drawer-head">
+                <div><span className="nw-kicker">{selected ? 'CİHAZ AYARLARI' : 'KABLO BAĞLANTISI'}</span>
+                  <strong>{selected?.name ?? 'Kablo seçildi'}</strong></div>
+                <button type="button" aria-label="Ayarları kapat"
+                  onClick={() => { setSelectedId(null); setSelectedWireId(null) }}>×</button>
+              </div>
+              {selected ? <>
+                <div className="nw-selection-heading"><span>{deviceIcons[selected.kind]}</span>
+                  <div><strong>{deviceNames[selected.kind]}</strong>
+                    <small>{world.links.filter((wire) => wire.from === selected.id || wire.to === selected.id).length} / {devicePorts[selected.kind]} port bağlı</small></div></div>
+                <label className="nw-field">Cihaz adı
+                  <input value={selected.name} maxLength={24} onChange={(event) => editDevice('name', event.target.value)}/>
+                </label>
+                {selected.kind === 'switch'
+                  ? <div className="nw-inspector-tip">Switch, aynı yerel ağdaki cihazları birbirine bağlar. Bu temel simülasyonda ona IP vermen gerekmiyor.</div>
+                  : <>
+                    <label className="nw-field">{selected.kind === 'router' ? 'Arayüz A · IP adresi' : 'IP adresi'}
+                      <input value={selected.ip} onChange={(event) => editDevice('ip', event.target.value)}
+                        placeholder="192.168.1.10" inputMode="decimal"/>
+                    </label>
+                    {selected.kind === 'router' && <label className="nw-field">Arayüz B · IP adresi
+                      <input value={selected.ip2} onChange={(event) => editDevice('ip2', event.target.value)}
+                        placeholder="192.168.2.1" inputMode="decimal"/>
+                    </label>}
+                    {mode === 'missions' && missionIndex < 3 && !advancedOpen && <button className="nw-advanced-toggle"
+                      type="button" onClick={() => setAdvancedOpen(true)}>+ Diğer ağ ayarlarını göster</button>}
+                    {(mode === 'free' || missionIndex >= 3 || advancedOpen) && <>
+                      <label className="nw-field">Alt ağ maskesi
+                        <input value={selected.mask} onChange={(event) => editDevice('mask', event.target.value)}
+                          placeholder="255.255.255.0" inputMode="decimal"/>
+                      </label>
+                      {selected.kind !== 'router' && <label className="nw-field">Varsayılan ağ geçidi
+                        <input value={selected.gateway} onChange={(event) => editDevice('gateway', event.target.value)}
+                          placeholder="192.168.1.1" inputMode="decimal"/>
+                      </label>}
+                    </>}
+                    <div className="nw-inspector-tip">{mode === 'missions' && missionIndex === 0
+                      ? 'IP adresi, bilgisayarın ağdaki adresidir. Bu görevde değerleri değiştirmeden kabloyla bağlantıyı kurabilirsin.'
+                      : mode === 'missions' && missionIndex === 2
+                        ? 'Aynı ağdaki iki bilgisayara aynı IP adresi verilmemeli.'
+                        : mode === 'missions' && missionIndex === 3
+                          ? 'Başka ağa ulaşmak için ağ geçidi, router’ın bu ağa bağlı arayüzünün IP adresidir.'
+                          : 'IP cihazı tanımlar, maske hangi ağda olduğunu gösterir; farklı ağa çıkmak için ağ geçidi kullanılır.'}</div>
+                  </>}
+                {mode === 'free' && <button className="nw-delete" type="button" onClick={deleteSelection}>🗑 Cihazı kaldır</button>}
+              </> : selectedWire && <>
+                <div className="nw-wire-detail">🔌 {world.devices.find((item) => item.id === selectedWire.from)?.name}
+                  <span> ↔ </span>{world.devices.find((item) => item.id === selectedWire.to)?.name}</div>
+                <p className="nw-wire-help">Kabloyu kaldırmak, bu iki cihaz arasındaki fiziksel yolu keser.</p>
+                <button className="nw-delete" type="button" onClick={deleteSelection}>Kabloyu kaldır</button>
+              </>}
+            </div>}
+          </div>
+
+          <div className={'nw-feedback-strip ' + notice.tone} aria-live="polite">
+            <span>{notice.tone === 'success' ? '✓' : notice.tone === 'warning' ? '!' : 'ℹ'}</span>
+            <p>{notice.text}</p>
+          </div>
+
+          <section className="nw-ping-dock" aria-label="Bağlantıyı test et">
+            <div className="nw-ping-heading">
+              <div><span className="nw-kicker">SON ADIM · AĞ TESTİ</span>
+                <h3>📨 Bağlantıyı test et</h3>
+                <p>Kurduğun ağ üzerinden bir veri paketi gönder.</p>
+              </div>
+              {ping && <span className={'nw-ping-status ' + (ping.ok ? 'good' : 'bad')}>
+                {ping.ok ? '✓ Ulaşıldı' : '✕ Ulaşılamadı'}</span>}
+            </div>
+            <div className="nw-ping-controls">
+              {mode === 'missions' ? <div className="nw-auto-ping-pair">
+                <span><small>KAYNAK</small><strong>{world.devices.find((entry) => entry.id === scenario.source)?.name}</strong></span>
+                <span className="nw-auto-arrow">→</span>
+                <span><small>HEDEF</small><strong>{world.devices.find((entry) => entry.id === scenario.target)?.name}</strong></span>
+              </div> : <>
+                <label>Kaynak cihaz
+                  <select value={source} onChange={(event) => { setSourceId(event.target.value); resetSimulation() }}>
+                    {possibleSources.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.ip || 'IP yok'})</option>)}
+                  </select>
+                </label>
+                <span className="nw-ping-arrow">→</span>
+                <label>Hedef cihaz
+                  <select value={target} onChange={(event) => { setTargetId(event.target.value); resetSimulation() }}>
+                    {possibleSources.filter((item) => item.id !== source).map((item) =>
+                      <option key={item.id} value={item.id}>{item.name} ({item.ip || 'IP yok'})</option>)}
+                  </select>
+                </label>
+              </>}
+              <button type="button" onClick={sendPing} disabled={!source || !target}>▶ Ping gönder</button>
+            </div>
+
+            {ping ? <div className={'nw-terminal-result ' + (ping.ok ? 'success' : 'error')}>
+              <div className="nw-terminal-top"><span className="nw-terminal-dot"/><span>AG_DIAGNOSTIC.exe</span>
+                <span className="nw-terminal-tag">SİMÜLASYON</span></div>
+              <div className="nw-terminal-content">
+                <div className="nw-command">$ ping {world.devices.find((item) => item.id === target)?.ip ?? 'hedef'}</div>
+                <strong>{ping.title}</strong>
+                <p>{ping.detail}</p>
+                {ping.requestPath.length > 1 && <div className="nw-path">
+                  {ping.requestPath.map((id, index) => <span key={id + '-' + index}>
+                    {index > 0 && <b>→</b>}{world.devices.find((item) => item.id === id)?.name ?? id}</span>)}
+                </div>}
+                {packet && <div className="nw-packet-caption">✉ {packet.phase === 'istek' ? 'İstek gidiyor' : 'Yanıt dönüyor'}: {world.devices.find((item) => item.id === packet.id)?.name}</div>}
+              </div>
+            </div> : <div className="nw-terminal-empty"><span>$ _</span>
+              {mode === 'missions' ? 'Görevin bağlantısını denemek için “Ping gönder”e bas.' :
+                'Cihazları kurduktan sonra kaynak ve hedef seçip ping gönderebilirsin.'}
+            </div>}
+            {packetSteps.length > 1 && <div className="nw-packet-controls">
+              <button type="button" onClick={() => { setPacketIndex(0); setPlaying(true) }}>↺ Yeniden oynat</button>
+              <button type="button" onClick={() => setPlaying((current) => !current)}
+                disabled={packetIndex >= packetSteps.length - 1 && !playing}>{playing ? '⏸ Duraklat' : '▶ Devam et'}</button>
+              <button type="button" onClick={() => { setPlaying(false); setPacketIndex((index) => Math.min(index + 1, packetSteps.length - 1)) }}
+                disabled={packetIndex >= packetSteps.length - 1}>⏭ Tek adım</button>
+              <span>{packetIndex + 1} / {packetSteps.length}</span>
+            </div>}
+          </section>
+
+          {world.links.length > 0 && <details className="nw-link-disclosure">
+            <summary>🔌 Bağlantıları yönet <span>{world.links.length} kablo</span></summary>
+            <div>{world.links.map((wire) => <button type="button" key={wire.id}
+              onClick={() => { setSelectedWireId(wire.id); setSelectedId(null); setCableMode(false); setCableStart(null) }}>
+              {world.devices.find((item) => item.id === wire.from)?.name} ↔ {world.devices.find((item) => item.id === wire.to)?.name}
+            </button>)}</div>
+          </details>}
         </section>
       </main>
     </div>
