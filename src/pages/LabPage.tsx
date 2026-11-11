@@ -3,6 +3,7 @@ import { getArea, getLab } from '../data/labs'
 import { StatusBadge } from '../components/StatusBadge'
 import { DeliveryWorld } from '../components/algorithm/DeliveryWorld'
 import { ProductStudio } from '../components/programming/ProductStudio'
+import { NetworkPlayground } from '../components/network/NetworkPlayground'
 
 export function LabPage() {
   const { areaId = '', labId = '' } = useParams()
@@ -13,7 +14,8 @@ export function LabPage() {
 
   const isDeliveryWorld = areaId === 'bilisim' && labId === 'algoritma'
   const isProductStudio = areaId === 'bilisim' && labId === 'programlama'
-  const isInteractiveLab = isDeliveryWorld || isProductStudio
+  const isNetworkPlayground = areaId === 'bilisim' && labId === 'ag'
+  const isInteractiveLab = isDeliveryWorld || isProductStudio || isNetworkPlayground
 
   return (
     <div className="page-width lab-page">
@@ -30,12 +32,14 @@ export function LabPage() {
         </div>
       </section>
 
-      <div className={`lab-layout ${isDeliveryWorld ? 'algorithm-layout' : isProductStudio ? 'studio-layout' : ''}`}>
+      <div className={`lab-layout ${isDeliveryWorld ? 'algorithm-layout' : isProductStudio ? 'studio-layout' : isNetworkPlayground ? 'network-layout' : ''}`}>
         <section className="lab-main-panel">
           {isDeliveryWorld ? (
             <DeliveryWorld />
           ) : isProductStudio ? (
             <ProductStudio />
+          ) : isNetworkPlayground ? (
+            <NetworkPlayground />
           ) : (
             <div className="placeholder-stage">
               <div className="placeholder-toolbar">
