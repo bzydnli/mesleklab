@@ -332,96 +332,71 @@ export function NetworkPlayground() {
       </button>)}
     </nav>}
 
-    <div className="nw-workspace">
-      <aside className="nw-sidebar">
-        {mode === 'missions' ? <section className="nw-card nw-mission-brief">
+    <div className="nw-workspace nw-workspace-v2">
+      <aside className="nw-guide" aria-label={mode === 'missions' ? 'Görev rehberi' : 'Serbest laboratuvar rehberi'}>
+        {mode === 'missions' ? <section className="nw-card nw-mission-brief nw-guide-card">
           <span className="nw-kicker">{scenario.topic}</span>
-          <h3>{scenario.title}</h3>
+          <div className="nw-guide-heading"><span className="nw-guide-chapter">GÖREV {String(missionIndex + 1).padStart(2, '0')}</span><h3>{scenario.title}</h3></div>
           <p>{scenario.story}</p>
           <div className="nw-task"><span>🎯</span><strong>{scenario.goal}</strong></div>
+
+          <div className="nw-guide-section-heading"><strong>Şimdi ne yapacağım?</strong><span>3 adım</span></div>
+          <ol className="nw-guide-steps">
+            <li className={connectedGoal ? 'finished' : activeGuideStep === 1 ? 'current' : ''}>
+              <span className="nw-guide-step-number">{connectedGoal ? '✓' : '1'}</span>
+              <div><strong>Kabloları bağla</strong><small>“Kablo bağla” aracını açıp sahnedeki cihazları seç.</small></div>
+            </li>
+            <li className={configurationGoal ? 'finished' : activeGuideStep === 2 ? 'current' : ''}>
+              <span className="nw-guide-step-number">{configurationGoal ? '✓' : '2'}</span>
+              <div><strong>IP ayarlarını kontrol et</strong><small>{missionIndex === 3
+                ? 'Öğretmen bilgisayarına uygun ağ geçidini ver.'
+                : missionIndex === 2 ? 'Çakışan IP adresini bulup düzelt.' : 'Cihazlara tıkla, IP bilgilerini incele.'}</small></div>
+            </li>
+            <li className={pingGoal ? 'finished' : activeGuideStep === 3 ? 'current' : ''}>
+              <span className="nw-guide-step-number">{pingGoal ? '✓' : '3'}</span>
+              <div><strong>Ping ile test et</strong><small>Haritanın hemen altındaki “Ping gönder” düğmesine bas.</small></div>
+            </li>
+          </ol>
+
           <button className="nw-hint-toggle" type="button" aria-expanded={hintOpen} onClick={() => setHintOpen(!hintOpen)}>
-            💡 {hintOpen ? 'İpucunu gizle' : 'Nasıl yapabilirim?'} <span>{hintOpen ? '−' : '+'}</span>
+            💡 {hintOpen ? 'İpucunu gizle' : 'Takıldın mı? İpucu al'} <span>{hintOpen ? '−' : '+'}</span>
           </button>
           {hintOpen && <div className="nw-hint">{scenario.hint}</div>}
-        </section> : <section className="nw-card">
-          <span className="nw-kicker">KENDİ LABORATUVARIN</span>
-          <h3>Yeni cihaz ekle</h3>
-          <p>Cihazları oluştur, kablolarla bağla ve adreslerini ayarla. Yerlerini değiştirmek için sürükle.</p>
-          <div className="nw-device-palette">{(['pc', 'switch', 'router', 'server'] as DeviceKind[]).map((kind) =>
-            <button type="button" key={kind} disabled={world.devices.length >= 18} onClick={() => addDevice(kind)}>
-              <span>{deviceIcons[kind]}</span><strong>{deviceNames[kind]}</strong><small>+ Ekle</small>
-            </button>)}</div>
-          <small className="nw-limits">Bu sürümde en fazla 18 cihaz; PC/sunucu 1, switch 8, router 4 port kullanabilir.</small>
-        </section>}
-
-        <section className="nw-card">
-          <div className="nw-card-heading"><strong>🔧 Bağlantı araçları</strong><small>{world.links.length} kablo</small></div>
-          <div className="nw-action-row">
-            <button type="button" className={cableMode ? 'nw-cable-on' : ''} onClick={() => {
-              setCableMode((old) => !old)
-              setCableStart(null)
-              setSelectedWireId(null)
-              setNotice({ tone: 'normal', text: cableMode ? 'Kablo bağlama modu kapatıldı.' :
-                'Kablo bağlama modu açık. Önce birinci, ardından ikinci cihaza dokun.' })
-            }}>{cableMode ? '✓ Kablo bağlama açık' : '🔌 Kablo bağla'}</button>
-            <button type="button" className="nw-outline" onClick={restartWorld}>↺ Sıfırla</button>
+          <div className="nw-guide-checks"><div className="nw-guide-checks-heading">
+            <strong>Görevin hedefleri</strong><span>{tests.filter((item) => item.passed).length}/{tests.length}</span>
           </div>
-          <p className="nw-helper">{cableMode ? cableStart
-            ? 'İlk uç tamam. İkinci cihaza dokunarak kabloyu bitir.'
-            : 'İki cihaza sırayla tıkla. Port sınırlarını kontrol edeceğiz.'
-            : 'Cihaza tıkla → IP ayarlarını düzenle. Kabloya tıkla → bağlantıyı sil.'}</p>
-          <div className={'nw-notice ' + notice.tone} aria-live="polite">{notice.tone === 'success' ? '✓' : notice.tone === 'warning' ? '!' : 'ℹ'} <span>{notice.text}</span></div>
-        </section>
-
-        <section className="nw-card nw-inspector">
-          <div className="nw-card-heading"><strong>🖥️ Cihaz ayarları</strong><small>{selected ? selected.name : selectedWire ? 'Kablo seçildi' : 'Seçim yok'}</small></div>
-          {selected ? <>
-            <div className="nw-selection-heading"><span>{deviceIcons[selected.kind]}</span>
-              <div><strong>{selected.name}</strong><small>{deviceNames[selected.kind]} · {devicePorts[selected.kind]} port</small></div></div>
-            <label className="nw-field">Cihaz adı
-              <input value={selected.name} maxLength={24} onChange={(event) => editDevice('name', event.target.value)}/>
-            </label>
-            {selected.kind === 'switch'
-              ? <div className="nw-inspector-tip">Switch, bu simülasyonda aynı yerel ağdaki cihazları birbirine iletir. Bu görevler için ayrıca IP vermene gerek yok.</div>
-              : <>
-                <label className="nw-field">{selected.kind === 'router' ? 'Arayüz A · IP' : 'IPv4 adresi'}
-                  <input value={selected.ip} onChange={(event) => editDevice('ip', event.target.value)}
-                    placeholder="192.168.1.10" inputMode="decimal"/>
-                </label>
-                {selected.kind === 'router' && <label className="nw-field">Arayüz B · IP
-                  <input value={selected.ip2} onChange={(event) => editDevice('ip2', event.target.value)}
-                    placeholder="192.168.2.1" inputMode="decimal"/>
-                </label>}
-                <label className="nw-field">Alt ağ maskesi
-                  <input value={selected.mask} onChange={(event) => editDevice('mask', event.target.value)}
-                    placeholder="255.255.255.0" inputMode="decimal"/>
-                </label>
-                {selected.kind !== 'router' && <label className="nw-field">Varsayılan ağ geçidi
-                  <input value={selected.gateway} onChange={(event) => editDevice('gateway', event.target.value)}
-                    placeholder="192.168.1.1" inputMode="decimal"/>
-                </label>}
-                <div className="nw-inspector-tip">IP adresi cihazı tanımlar, maske hangi ağda olduğunu belirler. Başka ağa çıkmak için router’ın IP’si ağ geçidi olarak kullanılır.</div>
-              </>}
-            {mode === 'free' && <button className="nw-delete" type="button" onClick={deleteSelection}>🗑 Cihazı kaldır</button>}
-          </> : selectedWire ? <>
-            <div className="nw-wire-detail">🔌 {world.devices.find((item) => item.id === selectedWire.from)?.name} ↔ {world.devices.find((item) => item.id === selectedWire.to)?.name}</div>
-            <button className="nw-delete" type="button" onClick={deleteSelection}>Bağlantıyı kaldır</button>
-          </> : <p className="nw-empty-inspector">Haritadaki bir cihaza tıkla. IP ve ağ geçidi bilgilerini burada değiştirebilirsin.</p>}
-        </section>
-
-        {mode === 'missions' && <section className="nw-card">
-          <div className="nw-card-heading"><strong>✅ Görev kontrolü</strong><small>{tests.filter((item) => item.passed).length}/{tests.length}</small></div>
-          <div className="nw-check-list">
-            {tests.map((check) => <div key={check.label} className={check.passed ? 'passed' : ''}>
+            {tests.map((check) => <div key={check.label} className={'nw-guide-check ' + (check.passed ? 'passed' : '')}>
               <span>{check.passed ? '✓' : '○'}</span><span>{check.label}</span>
             </div>)}
           </div>
-          <button type="button" className="nw-check-button" onClick={checkMission}>Görevi kontrol et →</button>
-          {missionReviewed && tests.every((item) => item.passed) && <div className="nw-mission-done">
-            <strong>🏆 Harika! Ağ çalışıyor.</strong><p>Bir sonraki görevde okulun ağı büyüyor.</p>
+          {missionReviewed && <div className="nw-mission-done">
+            <strong>🏆 Görev tamamlandı!</strong>
+            <p>Yaptığın ping testi başarılı, ağın tüm hedefleri karşılıyor.</p>
             {missionIndex < scenarios.length - 1 &&
-              <button type="button" onClick={() => changeMission(missionIndex + 1)}>Sonraki görev →</button>}
+              <button type="button" onClick={() => changeMission(missionIndex + 1)}>Sonraki göreve geç →</button>}
           </div>}
+        </section> : <section className="nw-card nw-guide-card">
+          <span className="nw-kicker">🧪 SERBEST LABORATUVAR</span>
+          <h3>Sen tasarla, sen dene.</h3>
+          <p>İstersen iki bilgisayardan başla, istersen switch ve router kullanarak yeni bir ağ kur.</p>
+          <ol className="nw-guide-steps">
+            <li className={world.devices.length ? 'finished' : 'current'}>
+              <span className="nw-guide-step-number">{world.devices.length ? '✓' : '1'}</span>
+              <div><strong>Cihaz ekle</strong><small>Sahnenin üstündeki “+ Cihaz ekle” düğmesini kullan.</small></div>
+            </li>
+            <li className={world.links.length ? 'finished' : ''}>
+              <span className="nw-guide-step-number">{world.links.length ? '✓' : '2'}</span>
+              <div><strong>Kabloyla bağla</strong><small>Önce “Kablo bağla”ya bas, sonra iki cihaz seç.</small></div>
+            </li>
+            <li className={ping?.ok ? 'finished' : ''}>
+              <span className="nw-guide-step-number">{ping?.ok ? '✓' : '3'}</span>
+              <div><strong>Ping ile dene</strong><small>IP adreslerini kontrol et, kaynak ve hedefi seçip ping gönder.</small></div>
+            </li>
+          </ol>
+          <div className="nw-guide-tip"><strong>📍 Ağın kısa sözlüğü</strong>
+            <p><b>IP:</b> Cihazın ağdaki adresi. <b>Switch:</b> Aynı ağdaki cihazları bağlar. <b>Router:</b> Farklı ağlar arasında iletişim kurar.</p>
+          </div>
+          <small className="nw-limits">En fazla 18 cihaz ekleyebilirsin. PC/sunucu 1, switch 8, router 4 bağlantı portu kullanır.</small>
         </section>}
       </aside>
 
