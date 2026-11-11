@@ -58,6 +58,8 @@ export function NetworkPlayground() {
     tone: 'normal', text: 'Bir cihaz seçerek ayarlarını incele veya kablo bağlamaya başla.',
   })
   const [hintOpen, setHintOpen] = useState(false)
+  const [addMenuOpen, setAddMenuOpen] = useState(false)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
   const [missionReviewed, setMissionReviewed] = useState(false)
   const [ping, setPing] = useState<PingResult | null>(null)
   const [packetSteps, setPacketSteps] = useState<PacketStep[]>([])
@@ -72,6 +74,16 @@ export function NetworkPlayground() {
   const selectedWire = world.links.find((wire) => wire.id === selectedWireId) ?? null
   const tests = useMemo(() => mode === 'missions' ? missionChecks(missionIndex, world) : [], [mode, missionIndex, world])
   const solvedCount = completed.filter(Boolean).length
+  const connectedGoal = missionIndex === 0
+    ? hasCable(world, 'pc1', 'pc2')
+    : missionIndex === 1 || missionIndex === 2
+      ? ['pc1', 'pc2', 'pc3'].every((id) => hasCable(world, id, 'sw1'))
+      : hasCable(world, 'r1', 'sw2')
+  const configurationGoal = missionIndex === 2
+    ? (tests[0]?.passed ?? false)
+    : missionIndex === 3 ? (tests[1]?.passed ?? false) : true
+  const pingGoal = !!ping?.ok && tests.every((item) => item.passed)
+  const activeGuideStep = !connectedGoal ? 1 : !configurationGoal ? 2 : 3
   const possibleSources = endpoints(world)
   const source = possibleSources.some((item) => item.id === sourceId) ? sourceId : possibleSources[0]?.id ?? ''
   const target = possibleSources.some((item) => item.id === targetId && item.id !== source)
@@ -116,6 +128,8 @@ export function NetworkPlayground() {
     setCableMode(false)
     setCableStart(null)
     setHintOpen(false)
+    setAdvancedOpen(false)
+    setAddMenuOpen(false)
     resetSimulation()
     if (next === 'missions') {
       setSourceId(scenario.source)
@@ -140,6 +154,8 @@ export function NetworkPlayground() {
     setCableMode(false)
     setCableStart(null)
     setHintOpen(false)
+    setAdvancedOpen(false)
+    setAddMenuOpen(false)
     resetSimulation()
     setNotice({ tone: 'normal', text: 'Yeni görev yüklendi. Cihazlara dokunarak özelliklerini inceleyebilirsin.' })
   }
@@ -164,6 +180,7 @@ export function NetworkPlayground() {
     }
     const link: NetworkLink = { id: 'wire-' + Date.now() + '-' + Math.floor(Math.random() * 10000), from: a, to: b }
     editWorld((current) => ({ ...current, links: [...current.links, link] }))
+    setCableMode(false)
     setNotice({ tone: 'success', text: 'Kablo bağlandı! Şimdi IP ayarlarını kontrol edip ping testi yapabilirsin.' })
   }
 
@@ -180,6 +197,7 @@ export function NetworkPlayground() {
     }
     setSelectedId(id)
     setSelectedWireId(null)
+    setAdvancedOpen(false)
   }
 
   function startDrag(event: ReactPointerEvent<HTMLButtonElement>, id: string) {
@@ -195,7 +213,7 @@ export function NetworkPlayground() {
   function moveDrag(event: ReactPointerEvent<HTMLButtonElement>, id: string) {
     const drag = dragRef.current
     const bounds = boardRef.current?.getBoundingClientRect()
-    if (!drag || drag.id !== id || !bounds) return
+    if (!drag || drag.id !== id || !bounds || cableMode) return
     const dx = event.clientX - drag.startX
     const dy = event.clientY - drag.startY
     if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 7) return
@@ -246,6 +264,8 @@ export function NetworkPlayground() {
     editWorld((current) => ({ ...current, devices: [...current.devices, item] }))
     setSelectedId(item.id)
     setSelectedWireId(null)
+    setAddMenuOpen(false)
+    setAdvancedOpen(false)
     setNotice({ tone: 'success', text: item.name + ' eklendi. Cihazı sürükleyebilir, ayarlarını değiştirebilirsin.' })
   }
 
@@ -263,18 +283,12 @@ export function NetworkPlayground() {
     setPacketSteps(frames)
     setPacketIndex(0)
     setPlaying(frames.length > 1)
-    setNotice({ tone: outcome.ok ? 'success' : 'warning', text: outcome.detail })
-  }
-
-  function checkMission() {
-    const done = tests.every((item) => item.passed)
-    setMissionReviewed(true)
-    setNotice({
-      tone: done ? 'success' : 'warning',
-      text: done ? 'Görev tamamlandı! Ağın beklendiği gibi çalışıyor. Yeni sahneye geçebilirsin.' :
-        'Henüz tamamlanmayan kontroller var. Bağlantıları ve cihaz ayarlarını inceleyip tekrar dene.',
-    })
-    if (done) setCompleted((old) => old.map((item, index) => index === missionIndex ? true : item))
+    const cleared = mode === 'missions' && outcome.ok && missionChecks(missionIndex, world).every((check) => check.passed)
+    setMissionReviewed(cleared)
+    setNotice({ tone: cleared ? 'success' : outcome.ok ? 'normal' : 'warning',
+      text: cleared ? 'Görev tamamlandı! Ağın çalışıyor; yeni göreve geçebilirsin.' :
+        outcome.ok && mode === 'missions' ? 'Ping başarılı! Diğer hedeflerin durumunu soldaki rehberden kontrol et.' : outcome.detail })
+    if (cleared) setCompleted((old) => old.map((item, index) => index === missionIndex ? true : item))
   }
 
   function restartWorld() {
